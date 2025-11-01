@@ -1,4 +1,4 @@
-![Programmers Are People Too Logo](banner.png)
+![Programmers Are People Too Logo](./banner.png)
 
 
 
@@ -12,7 +12,7 @@ This extension changes that by introducing **positive reinforcement** into your 
 
 ## Features ✨
 
-![highlight fixed code](highlight_fixed_code.gif)
+![highlight fixed code](./highlight_fixed_code.gif)
 
 ### 🎊 Instant Celebrations
 - **Real-time feedback** when you fix errors or warnings
