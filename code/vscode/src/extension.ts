@@ -1,19 +1,63 @@
 import * as vscode from 'vscode';
 import { animateFix } from './animations';
+import { StatisticsTracker } from './statistics';
+import { getMotivationalHtml } from './motivationalPanel';
 
 const outputChannel = vscode.window.createOutputChannel('Programmers Are People Too');
+let statsTracker: StatisticsTracker;
 
 function log(message: string) {
 	console.log(message);
 	outputChannel.appendLine(message);
 }
 
+function showMotivationalPanel(context: vscode.ExtensionContext, message: string) {
+	// Create and show a new webview panel
+	const panel = vscode.window.createWebviewPanel(
+		'motivationalMessage',
+		'🎉 Your Achievements',
+		vscode.ViewColumn.One,
+		{
+			enableScripts: true,
+			retainContextWhenHidden: true
+		}
+	);
+
+	// Parse the message to extract parts
+	const lines = message.split('\n').filter(line => line.trim());
+	const title = lines[0].replace(/\*\*/g, '');
+	const achievements = lines.slice(2, -2); // Skip title and outro
+	const outro = lines[lines.length - 1];
+
+	// Set the webview's HTML content
+	panel.webview.html = getMotivationalHtml(title, achievements, outro);
+}
+
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "programmersarepeopletoo" is now active!');
-	const disposable = vscode.commands.registerCommand('programmersarepeopletoo.helloWorld', () => {
-		vscode.window.showInformationMessage('Hello World from ProgrammersArePeopleToo! Apple');
+
+	// Initialize statistics tracker
+	statsTracker = new StatisticsTracker(context);
+	log('📊 Statistics tracker initialized');
+
+	const cheerMeUpDisposable = vscode.commands.registerCommand('programmersarepeopletoo.cheermeup', async () => {
+		log(`🤗 Cheer Me Up command executed - spreading positivity!`);
+		
+		// Default to 1 hour
+		const defaultDuration = 60 * 60 * 1000; // 1 hour
+		
+		// Generate motivational message based on statistics
+		const motivationalMessage = statsTracker.generateMotivationalMessage(defaultDuration);
+		
+		// Show full message in output channel
+		outputChannel.appendLine('\n' + '='.repeat(60));
+		outputChannel.appendLine(motivationalMessage);
+		outputChannel.appendLine('='.repeat(60) + '\n');
+		
+		// Create and show webview panel
+		showMotivationalPanel(context, motivationalMessage);
 	});
-	context.subscriptions.push(disposable);
+	context.subscriptions.push(cheerMeUpDisposable);
 	context.subscriptions.push(outputChannel);
 	setupDiagnosticMonitoring(context);
 	setupTaskMonitoring(context);
@@ -43,7 +87,7 @@ const keyOf = (d: vscode.Diagnostic) =>
 	`${d.severity}:${d.message}:${d.range.start.line}:${d.range.start.character}:${d.range.end.line}:${d.range.end.character}`;
 type FixedRangesCallback = (uri: vscode.Uri, fixedRanges: vscode.Range[], fixedDiagnostics: vscode.Diagnostic[]) => void;
 
-function subscribeToEvents(onFixedRanges?: FixedRangesCallback): vscode.Disposable {
+function subscribeToEvents(onFixedRanges?: FixedRangesCallback, onNewDiagnostics?: (uri: vscode.Uri, newDiagnostics: vscode.Diagnostic[]) => void): vscode.Disposable {
 	const lastByFile = new Map<string, Map<DiagKey, vscode.Diagnostic>>();
 
 	const diagSub = vscode.languages.onDidChangeDiagnostics((event) => {
@@ -57,6 +101,8 @@ function subscribeToEvents(onFixedRanges?: FixedRangesCallback): vscode.Disposab
 
 			const fixedRanges: vscode.Range[] = [];
 			const fixedDiagnostics: vscode.Diagnostic[] = [];
+			const newDiagnostics: vscode.Diagnostic[] = [];
+			
 			for (const [k, dPrev] of prevMap) {
 				if (!currMap.has(k)) {
 					// Check if there's still a diagnostic at the same location
@@ -73,10 +119,21 @@ function subscribeToEvents(onFixedRanges?: FixedRangesCallback): vscode.Disposab
 				}
 			}
 
+			// Find new diagnostics
+			for (const [k, dCurr] of currMap) {
+				if (!prevMap.has(k)) {
+					newDiagnostics.push(dCurr);
+				}
+			}
+
 			if (fixedRanges.length) {
 				if (onFixedRanges) {
 					onFixedRanges(uri, fixedRanges, fixedDiagnostics);
 				}
+			}
+
+			if (newDiagnostics.length && onNewDiagnostics) {
+				onNewDiagnostics(uri, newDiagnostics);
 			}
 
 			lastByFile.set(fileKey, currMap);
@@ -86,18 +143,35 @@ function subscribeToEvents(onFixedRanges?: FixedRangesCallback): vscode.Disposab
 }
 
 function setupDiagnosticMonitoring(context: vscode.ExtensionContext) {
-	const subscription = subscribeToEvents((uri, fixedRanges, fixedDiagnostics) => {
-		const fileName = uri.fsPath.split(/[/\\]/).pop() || uri.fsPath;
-		log(`✨ Fixed ${fixedRanges.length} issues in ${fileName}`);
-		animateFix(context, uri, fixedRanges);
-	});
+	const subscription = subscribeToEvents(
+		(uri, fixedRanges, fixedDiagnostics) => {
+			const fileName = uri.fsPath.split(/[/\\]/).pop() || uri.fsPath;
+			log(`✨ Fixed ${fixedRanges.length} issues in ${fileName}`);
+			
+			// Track resolved diagnostics
+			for (const diagnostic of fixedDiagnostics) {
+				statsTracker.trackDiagnostic(diagnostic, uri, 'resolved');
+			}
+			
+			animateFix(context, uri, fixedRanges);
+		},
+		(uri, newDiagnostics) => {
+			// Track new diagnostics
+			for (const diagnostic of newDiagnostics) {
+				statsTracker.trackDiagnostic(diagnostic, uri, 'added');
+			}
+		}
+	);
 	context.subscriptions.push(subscription);
 }
 
 function setupTaskMonitoring(context: vscode.ExtensionContext) {
 	const subscription = vscode.tasks.onDidEndTaskProcess((event) => {
 		const taskName = event.execution.task.name;
-		const exitCode = event.exitCode;
+		const exitCode = event.exitCode ?? -1;
+		
+		// Track task execution
+		statsTracker.trackTask(taskName, exitCode);
 		
 		if (exitCode === 0) {
 			log(`✅ Task "${taskName}" succeeded`);
@@ -113,6 +187,9 @@ function setupSaveMonitoring(context: vscode.ExtensionContext) {
 	const subscription = vscode.workspace.onDidSaveTextDocument((document) => {
 		const fileName = document.uri.fsPath.split(/[/\\]/).pop() || document.uri.fsPath;
 		log(`💾 Saved ${fileName}`);
+		
+		// Track file change
+		statsTracker.trackFileChanged(document.uri);
 		// TODO: Add save animation
 	});
 	context.subscriptions.push(subscription);
@@ -123,6 +200,9 @@ function setupFileCreationMonitoring(context: vscode.ExtensionContext) {
 		for (const uri of event.files) {
 			const fileName = uri.fsPath.split(/[/\\]/).pop() || uri.fsPath;
 			log(`✨ Created ${fileName}`);
+			
+			// Track file creation
+			statsTracker.trackFileCreated(uri);
 			// TODO: Add creation animation
 		}
 	});
@@ -135,6 +215,9 @@ function setupFileRenameMonitoring(context: vscode.ExtensionContext) {
 			const oldName = oldUri.fsPath.split(/[/\\]/).pop() || oldUri.fsPath;
 			const newName = newUri.fsPath.split(/[/\\]/).pop() || newUri.fsPath;
 			log(`🔄 Renamed ${oldName} → ${newName}`);
+			
+			// Track file rename
+			statsTracker.trackFileRenamed(oldUri, newUri);
 			// TODO: Add rename animation
 		}
 	});

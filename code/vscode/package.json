@@ -63,8 +63,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "programmersarepeopletoo.helloWorld",
-        "title": "Programmers Are People Too: Hello World",
+        "command": "programmersarepeopletoo.cheermeup",
+        "title": "Run: Cheer Me Up",
         "category": "Programmers Are People Too"
       }
     ],

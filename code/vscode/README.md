@@ -1,4 +1,4 @@
-![Programmers Are People Too Logo](banner.png)
+![Programmers Are People Too Logo](./banner.png)
 
 
 
@@ -12,13 +12,27 @@ This extension changes that by introducing **positive reinforcement** into your 
 
 ## Features ✨
 
-![highlight fixed code](highlight_fixed_code.gif)
+![highlight fixed code](./highlight_fixed_code.gif)
+
+### 🤗 Cheer Me Up Command
+- **On-demand motivation** with the `Programmers Are People Too: Cheer Me Up` command
+- **Beautiful achievement panel** showing your recent accomplishments
+- **Smart statistics tracking** of errors fixed, tasks completed, and files modified
+- **Personalized messages** with 165+ unique motivational variations
+- **Time-based insights** reviewing your progress over the last hour
 
 ### 🎊 Instant Celebrations
 - **Real-time feedback** when you fix errors or warnings
 - **Encouraging notifications** when diagnostics improve
 - **Progress tracking** in the "ProgrammersArePeopleToo" output panel
 - **Detailed logging** of all your coding improvements
+
+### 📊 Comprehensive Statistics
+- **Tracks fixed errors and warnings** with automatic resolution detection
+- **Monitors task success** and failure recovery
+- **Records file activity** including creations, modifications, and renames
+- **Persistent storage** maintains your achievement history across sessions
+- **Smart filtering** shows achievements within your chosen time range
 
 ### 🔍 Smart Monitoring
 - Automatically detects when error/warning counts decrease
@@ -50,14 +64,32 @@ The extension monitors VS Code's diagnostic system (the same system that shows r
 
 ### Commands
 
-- `Programmers Are People Too: Hello World` - Test command to verify extension is working
+- **`Programmers Are People Too: Cheer Me Up`** - Get a beautiful motivational panel showing your recent achievements
+  - Displays fixed errors and warnings
+  - Shows completed tasks
+  - Highlights files you've created and modified
+  - Personalized encouragement based on your activity level
+  - Over 165 unique message variations to keep it fresh!
 
 ## Example Celebrations 🎉
 
+**Real-time feedback in output panel:**
 ```
 🎉 Great work! You fixed 3 issue(s) in App.tsx
 ✨ ALL CLEAR! File is now error-free! ✨  
 🌟 Improvement detected: 2 issues resolved in utils.js
+```
+
+**Motivational panel achievements:**
+```
+🚀 You're on fire! Check out your progress:
+
+✨ Fixed 5 errors and 3 warnings
+✅ Completed 2 tasks successfully
+📝 Created 1 new file
+💾 Modified 8 files
+
+You're solving problems like a pro! 🌈
 ```
 
 ## Extension Settings
@@ -102,6 +134,10 @@ Created by the BaselHack 2025 team:
 - Basic diagnostic monitoring and improvement detection
 - Console and output panel logging
 - Encouraging notifications for error/warning reductions  
+- **NEW: Cheer Me Up command** with beautiful achievement panel
+- **NEW: Comprehensive statistics tracking** for diagnostics, tasks, and files
+- **NEW: 165+ unique motivational messages** personalized to your achievement level
+- **NEW: Persistent storage** of your coding achievements across sessions
 - Foundation for future visual celebration features
 
 ---
