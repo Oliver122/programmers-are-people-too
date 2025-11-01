@@ -2,7 +2,7 @@
   "name": "programmersarepeopletoo",
   "displayName": "Programmers Are People Too",
   "description": "Celebrate your coding wins! Get positive reinforcement when you fix errors and improve code quality.",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "dan-42",
   "author": {
     "name": "Programmers Are People Too Team"
@@ -96,8 +96,7 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run copy-assets && npm run compile",
-    "copy-assets": "node scripts/copy-assets.js",
+    "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",

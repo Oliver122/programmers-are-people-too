@@ -1,4 +1,4 @@
-![Programmers Are People Too Logo](./banner.png)
+![Programmers Are People Too Logo](https://raw.githubusercontent.com/Oliver122/programmers-are-people-too/main/assets/banner.png)
 
 
 
@@ -12,7 +12,7 @@ This extension changes that by introducing **positive reinforcement** into your 
 
 ## Features ✨
 
-![highlight fixed code](./highlight_fixed_code.gif)
+![highlight fixed code](https://raw.githubusercontent.com/Oliver122/programmers-are-people-too/main/assets/highlight_fixed_code.gif)
 
 ### 🤗 Cheer Me Up Command
 - **On-demand motivation** with the `Programmers Are People Too: Cheer Me Up` command
@@ -129,19 +129,39 @@ Created by the BaselHack 2025 team:
 
 ## Release Notes 📝
 
-### 0.0.1 - Initial Release
+### 0.1.0 - First Public Release (Pre-release)
 
-- Basic diagnostic monitoring and improvement detection
-- Console and output panel logging
-- Encouraging notifications for error/warning reductions  
-- **NEW: Cheer Me Up command** with beautiful achievement panel
-- **NEW: Comprehensive statistics tracking** for diagnostics, tasks, and files
-- **NEW: 165+ unique motivational messages** personalized to your achievement level
-- **NEW: Persistent storage** of your coding achievements across sessions
-- Foundation for future visual celebration features
+**Core Features:**
+- ✨ **Real-time Diagnostic Monitoring**: Automatic detection and celebration when you fix errors, warnings, and hints
+- 🤗 **Cheer Me Up Command**: On-demand motivational panel showing your recent coding achievements
+- 📊 **Comprehensive Statistics Tracking**: 
+  - Tracks all diagnostic resolutions (errors, warnings, hints)
+  - Monitors task execution success and failures
+  - Records file operations (create, modify, rename)
+  - Persistent storage across VS Code sessions
+- 💬 **165+ Unique Motivational Messages**: Personalized encouragement based on your achievement level (minimal, low, medium, high, epic)
+- 🎨 **Beautiful Achievement Panel**: 
+  - Glassmorphism design with gradient backgrounds
+  - Animated achievement cards with icons
+  - Responsive layout with hover effects
+  - Floating sparkles and smooth transitions
+- 📝 **Output Panel Logging**: Detailed progress tracking in dedicated output channel
+- 🔍 **Debug Command**: Statistics overview for troubleshooting
+
+**Technical:**
+- TypeScript implementation with strict type safety
+- Modular architecture (statistics, animations, UI components)
+- VS Code ExtensionContext integration for data persistence
+- Webview API for rich visual feedback
+- Event-driven monitoring system
+
+**Default Behavior:**
+- Tracks achievements from the last 1 hour
+- Auto-activates on VS Code startup
+- Works with all language servers and diagnostic providers
 
 ---
 
-**Remember**: Every bug you fix, every warning you resolve, every improvement you make matters. This extension is here to notice and celebrate those moments with you! �
+**Remember**: Every bug you fix, every warning you resolve, every improvement you make matters. This extension is here to notice and celebrate those moments with you! 🎉
 
 *Built with ❤️ because programmers are people too.*
