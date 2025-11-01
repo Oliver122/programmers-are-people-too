@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Fast Reassure + Morph Ripple — Playground</title>
+<style>
+  :root { --bg:#0f111a; --panel:#11131d; --text:#c6d0f5; --accent:#8caaee; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--text);
+    font:14px/1.45 system-ui, Segoe UI, Roboto, sans-serif; }
+  .workbench { position:relative; height:100%; display:grid;
+    grid-template-rows: 44px 1fr 190px 26px; }
+  .titlebar { background:#0b0d15; display:flex; align-items:center; padding:0 12px;
+    border-bottom:1px solid #1a1d2a; gap:12px; }
+  .editor { position:relative; padding:16px; }
+  .panel { background:var(--panel); border-top:1px solid #1a1d2a; padding:12px; }
+  .statusbar { background:#0b0d15; border-top:1px solid #1a1d2a;
+    display:flex; align-items:center; padding:0 12px; gap:16px;}
+  .badge { background:#1f2336; padding:2px 8px; border-radius:999px; color:#8caaee; }
+  pre { margin:0; font:12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color:#a6accd;}
+  .card { background:#121527; border:1px solid #1d2136; border-radius:10px; padding:12px; margin:6px 0; }
+
+  /* ========= REASSURE: full-screen -> zero, constant speed (linear) ========= */
+  .pap-reassure {
+    position: fixed; inset: 0; pointer-events: none; z-index: 10000;
+  }
+  .pap-reassure::before {
+    content: "";
+    position: fixed;
+    left: var(--cx); top: var(--cy);
+    --rBase: 120px;
+    width: calc(var(--rBase) * 2); height: calc(var(--rBase) * 2);
+    transform: translate(-50%, -50%) scale(var(--s0, 1));
+    border-radius: 50%;
+    box-shadow:
+      0 0 22px 6px rgba(255,255,255,0.14),
+      0 0 0 2px rgba(255,255,255,0.26) inset;
+    background:
+      radial-gradient(circle, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.0) 60%);
+    animation: pap-reassure-to-zero var(--dur, 240ms) linear forwards;
+  }
+  .pap-reassure::after {
+    content: "";
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.20);
+    animation: pap-reassure-dim var(--dur, 240ms) linear forwards;
+  }
+  @keyframes pap-reassure-to-zero {
+    from { opacity: .95; transform: translate(-50%,-50%) scale(var(--s0, 1)); }
+    to   { opacity: 0;   transform: translate(-50%,-50%) scale(0); }
+  }
+  @keyframes pap-reassure-dim { from { opacity: .18; } to { opacity: 0; } }
+</style>
+
+<svg style="position:absolute; width:0; height:0;">
+  <defs>
+    <filter id="morphRipple" x="-50%" y="-50%" width="200%" height="200%">
+      <feTurbulence id="morphTurbulence" type="fractalNoise" 
+        baseFrequency="0.02" numOctaves="3" result="noise" seed="2">
+        <animate attributeName="baseFrequency" 
+          values="0.02;0.008;0.001" 
+          dur="800ms" 
+          repeatCount="1"
+          begin="indefinite"/>
+      </feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="noise" 
+        scale="0" xChannelSelector="R" yChannelSelector="G">
+        <animate attributeName="scale" 
+          values="0;80;20;0" 
+          dur="800ms" 
+          repeatCount="1"
+          begin="indefinite"/>
+      </feDisplacementMap>
+    </filter>
+  </defs>
+</svg>
+
+<div class="workbench">
+  <div class="titlebar">
+    <strong>Effects — Ctrl+Alt+E (Reassure) • Ctrl+Alt+M (Morph Ripple)</strong>
+  </div>
+
+  <div class="editor" id="editor">
+    <div class="card">
+      <h3>Editor</h3>
+      <pre>// Hotkeys:
+// Ctrl+Alt+E → Fast Reassure Effect (240ms)
+//              Shrinks from full viewport to zero
+//
+// Ctrl+Alt+M → Morph Ripple (800ms)
+//              Telegram-style wave distortion
+//              that ripples through the screen</pre>
+    </div>
+  </div>
+
+  <div class="panel" id="terminal">
+    <div class="card">
+      <strong>Terminal</strong>
+      <pre>npm run build
+✓ compiled successfully</pre>
+    </div>
+  </div>
+
+  <div class="statusbar" id="statusbar">
+    <span class="badge">main</span>
+    <span>Prettier • ESLint • TypeScript</span>
+  </div>
+</div>
+
+<script>
+  // ---- Utilities ----
+  function centerOf(el) {
+    const r = el.getBoundingClientRect();
+    return { x: r.left + r.width/2, y: r.top + r.height/2 };
+  }
+
+  // Compute the initial scale so the circle covers the whole viewport from (cx,cy).
+  function computeFullCoverScale(cx, cy, rBase = 120) {
+    const d1 = Math.hypot(cx, cy);
+    const d2 = Math.hypot(innerWidth - cx, cy);
+    const d3 = Math.hypot(cx, innerHeight - cy);
+    const d4 = Math.hypot(innerWidth - cx, innerHeight - cy);
+    const maxD = Math.max(d1, d2, d3, d4);
+    return maxD / rBase;
+  }
+
+  // ---- Effect ----
+  function reassureFull(el, ms = 240) {
+    const { x, y } = centerOf(el);
+    const d = document.createElement('div');
+    d.className = 'pap-reassure';
+    d.style.setProperty('--cx', `${x}px`);
+    d.style.setProperty('--cy', `${y}px`);
+    d.style.setProperty('--dur', `${ms}ms`);
+    const s0 = computeFullCoverScale(x, y, 120);
+    d.style.setProperty('--s0', s0);
+    document.body.appendChild(d);
+    const done = () => d.remove();
+    d.addEventListener('animationend', done, { once: true });
+    setTimeout(done, ms + 200);
+  }
+
+  function morphRipple() {
+    const workbench = document.querySelector('.workbench');
+    const originalFilter = workbench.style.filter;
+    
+    // Apply the distortion filter to the actual content
+    workbench.style.filter = 'url(#morphRipple)';
+    
+    // Restart SVG SMIL animations so it plays on demand
+    const anims = document.querySelectorAll('#morphRipple animate');
+    anims.forEach((a) => {
+      if (typeof a.beginElement === 'function') {
+        a.beginElement();
+      }
+    });
+    
+    // Remove after animation completes
+    setTimeout(() => {
+      workbench.style.filter = originalFilter;
+    }, 820);
+  }
+
+  // ---- Target ----
+  const $editor = document.getElementById('editor');
+
+  // ---- Hotkeys: Ctrl+Alt+E and Ctrl+Alt+M ----
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.altKey) {
+      if (e.code === 'KeyE') {
+        reassureFull($editor, 240);
+      }
+      if (e.code === 'KeyM') {
+        morphRipple();
+      }
+    }
+  });
+
+  // Expose for console testing
+  window.PAP = { reassureFull, morphRipple };
+</script>
+</html>
