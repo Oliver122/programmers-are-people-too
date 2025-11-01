@@ -80,8 +80,4 @@ Desktop.ini
 build/
 *.tsbuildinfo
 
-# Copied assets for VS Code extension packaging
-code/vscode/*.png
-code/vscode/*.svg
-code/vscode/*.gif
-code/vscode/LICENSE.md
+

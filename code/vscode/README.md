@@ -2,7 +2,7 @@
 
 
 
-## Why This Extension Exists �
+## Why This Extension Exists 🌟
 
 Development tools are great at telling us what's wrong - red underlines for errors, yellow squiggles for warnings, angry compiler messages. But they never celebrate when we **fix** things, **improve** code, or **solve** problems.
 
