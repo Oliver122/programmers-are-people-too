@@ -12,9 +12,10 @@ This extension changes that by introducing **positive reinforcement** into your 
 
 ## Features ✨
 
-![highlight fixed code](https://raw.githubusercontent.com/Oliver122/programmers-are-people-too/main/assets/highlight_fixed_code.gif)
-
 ### 🤗 Cheer Me Up Command
+
+![cheer_me_up_command.gif](https://raw.githubusercontent.com/Oliver122/programmers-are-people-too/main/assets/cheer_me_up_command.gif)
+
 - **On-demand motivation** with the `Programmers Are People Too: Cheer Me Up` command
 - **Beautiful achievement panel** showing your recent accomplishments
 - **Smart statistics tracking** of errors fixed, tasks completed, and files modified
@@ -22,6 +23,9 @@ This extension changes that by introducing **positive reinforcement** into your 
 - **Time-based insights** reviewing your progress over the last hour
 
 ### 🎊 Instant Celebrations
+
+![highlight fixed code](https://raw.githubusercontent.com/Oliver122/programmers-are-people-too/main/assets/highlight_fixed_code.gif)
+
 - **Real-time feedback** when you fix errors or warnings
 - **Encouraging notifications** when diagnostics improve
 - **Progress tracking** in the "ProgrammersArePeopleToo" output panel
