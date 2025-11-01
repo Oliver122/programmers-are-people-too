@@ -14,7 +14,7 @@ This extension changes that by introducing **positive reinforcement** into your 
 
 ### 🤗 Cheer Me Up Command
 
-![cheer_me_up_command.gif](https://raw.githubusercontent.com/Oliver122/programmers-are-people-too/main/assets/cheer_me_up_command.gif)
+![cheer me up command](https://raw.githubusercontent.com/Oliver122/programmers-are-people-too/main/assets/cheer_me_up_command.gif)
 
 - **On-demand motivation** with the `Programmers Are People Too: Cheer Me Up` command
 - **Beautiful achievement panel** showing your recent accomplishments
