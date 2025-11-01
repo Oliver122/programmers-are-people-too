@@ -3,6 +3,11 @@ import { animateFix } from './animations';
 
 const outputChannel = vscode.window.createOutputChannel('Programmers Are People Too');
 
+function log(message: string) {
+	console.log(message);
+	outputChannel.appendLine(message);
+}
+
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "programmersarepeopletoo" is now active!');
 	const disposable = vscode.commands.registerCommand('programmersarepeopletoo.helloWorld', () => {
@@ -11,6 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(disposable);
 	context.subscriptions.push(outputChannel);
 	setupDiagnosticMonitoring(context);
+	setupTaskMonitoring(context);
 
 	//Example to extract config values
 	/* vscode.workspace.onDidChangeConfiguration((event) => {
@@ -79,9 +85,23 @@ function subscribeToEvents(onFixedRanges?: FixedRangesCallback): vscode.Disposab
 function setupDiagnosticMonitoring(context: vscode.ExtensionContext) {
 	const subscription = subscribeToEvents((uri, fixedRanges, fixedDiagnostics) => {
 		const fileName = uri.fsPath.split(/[/\\]/).pop() || uri.fsPath;
-		console.log(`✨ Fixed ${fixedRanges.length} issues in ${fileName}`);
-		outputChannel.appendLine(`✨ Fixed ${fixedRanges.length} issues in ${fileName}`);
+		log(`✨ Fixed ${fixedRanges.length} issues in ${fileName}`);
 		animateFix(context, uri, fixedRanges);
+	});
+	context.subscriptions.push(subscription);
+}
+
+function setupTaskMonitoring(context: vscode.ExtensionContext) {
+	const subscription = vscode.tasks.onDidEndTaskProcess((event) => {
+		const taskName = event.execution.task.name;
+		const exitCode = event.exitCode;
+		
+		if (exitCode === 0) {
+			log(`✅ Task "${taskName}" succeeded`);
+			// TODO: Add celebration animation
+		} else {
+			log(`❌ Task "${taskName}" failed with code ${exitCode}`);
+		}
 	});
 	context.subscriptions.push(subscription);
 }
