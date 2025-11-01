@@ -68,8 +68,17 @@ function animate(context: vscode.ExtensionContext, uri: vscode.Uri, ranges: vsco
 	context.subscriptions.push(celebrateDeco);
 
 	const editor = vscode.window.visibleTextEditors.find(e => e.document.uri.toString() === uri.toString());
-    if (!editor || ranges.length === 0) return;
-    editor.setDecorations(celebrateDeco, ranges);
+    if (!editor || ranges.length === 0) {
+		return;
+	}
+	
+	// Extend ranges to cover the complete word
+	const extendedRanges = ranges.map(r => {
+		const wordRange = editor.document.getWordRangeAtPosition(r.start);
+		return wordRange || r;
+	});
+	
+    editor.setDecorations(celebrateDeco, extendedRanges);
     setTimeout(() => editor.setDecorations(celebrateDeco, []), durationMs);
 }
 
