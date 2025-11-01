@@ -28,6 +28,15 @@ We move the programming experience from 'in the dock in a courtroom' to be 'on s
 Programming becomes rocking the crowds ツ
 
 ## Conceptual Overview
+<!--TODO:check and confirm-->
+1. Events from to language server are listened
+2. The events are mapped to a reward level from -10 to 10. 
+3. The reward level of an event and possibly the event position are used to generate user feedback.
+
+Events --> Reward Level, Event Position --> Feedback
+
+
+
 ### Positive Feedback Types
 - **Sparkles** when your linter or prettier goes silent (errors → clean code)
 - **Smooth pulse** animations on successful builds
@@ -35,7 +44,7 @@ Programming becomes rocking the crowds ツ
 - **Green highlights** when syntax errors disappear (red → normal)
 
 ### Event Selection
-- **Predefined Events** fixing errors or successful builds and runs
+- **Predefined Events** such as for fixing errors or successful builds and runs
 - **AI-powered appreciation** for especially clever or clean code snippets
 
 
