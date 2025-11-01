@@ -9,7 +9,7 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": ["onStartupFinished"],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -39,3 +39,5 @@
     "@vscode/test-electron": "^2.5.2"
   }
 }
+
+
