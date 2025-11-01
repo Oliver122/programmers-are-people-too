@@ -3,6 +3,11 @@ import { animateFix } from './animations';
 
 const outputChannel = vscode.window.createOutputChannel('Programmers Are People Too');
 
+function log(message: string) {
+	console.log(message);
+	outputChannel.appendLine(message);
+}
+
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "programmersarepeopletoo" is now active!');
 	const disposable = vscode.commands.registerCommand('programmersarepeopletoo.helloWorld', () => {
@@ -11,6 +16,10 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(disposable);
 	context.subscriptions.push(outputChannel);
 	setupDiagnosticMonitoring(context);
+	setupTaskMonitoring(context);
+	setupSaveMonitoring(context);
+	setupFileCreationMonitoring(context);
+	setupFileRenameMonitoring(context);
 
 	//Example to extract config values
 	/* vscode.workspace.onDidChangeConfiguration((event) => {
@@ -79,9 +88,55 @@ function subscribeToEvents(onFixedRanges?: FixedRangesCallback): vscode.Disposab
 function setupDiagnosticMonitoring(context: vscode.ExtensionContext) {
 	const subscription = subscribeToEvents((uri, fixedRanges, fixedDiagnostics) => {
 		const fileName = uri.fsPath.split(/[/\\]/).pop() || uri.fsPath;
-		console.log(`✨ Fixed ${fixedRanges.length} issues in ${fileName}`);
-		outputChannel.appendLine(`✨ Fixed ${fixedRanges.length} issues in ${fileName}`);
+		log(`✨ Fixed ${fixedRanges.length} issues in ${fileName}`);
 		animateFix(context, uri, fixedRanges);
+	});
+	context.subscriptions.push(subscription);
+}
+
+function setupTaskMonitoring(context: vscode.ExtensionContext) {
+	const subscription = vscode.tasks.onDidEndTaskProcess((event) => {
+		const taskName = event.execution.task.name;
+		const exitCode = event.exitCode;
+		
+		if (exitCode === 0) {
+			log(`✅ Task "${taskName}" succeeded`);
+			// TODO: Add celebration animation
+		} else {
+			log(`❌ Task "${taskName}" failed with code ${exitCode}`);
+		}
+	});
+	context.subscriptions.push(subscription);
+}
+
+function setupSaveMonitoring(context: vscode.ExtensionContext) {
+	const subscription = vscode.workspace.onDidSaveTextDocument((document) => {
+		const fileName = document.uri.fsPath.split(/[/\\]/).pop() || document.uri.fsPath;
+		log(`💾 Saved ${fileName}`);
+		// TODO: Add save animation
+	});
+	context.subscriptions.push(subscription);
+}
+
+function setupFileCreationMonitoring(context: vscode.ExtensionContext) {
+	const subscription = vscode.workspace.onDidCreateFiles((event) => {
+		for (const uri of event.files) {
+			const fileName = uri.fsPath.split(/[/\\]/).pop() || uri.fsPath;
+			log(`✨ Created ${fileName}`);
+			// TODO: Add creation animation
+		}
+	});
+	context.subscriptions.push(subscription);
+}
+
+function setupFileRenameMonitoring(context: vscode.ExtensionContext) {
+	const subscription = vscode.workspace.onDidRenameFiles((event) => {
+		for (const { oldUri, newUri } of event.files) {
+			const oldName = oldUri.fsPath.split(/[/\\]/).pop() || oldUri.fsPath;
+			const newName = newUri.fsPath.split(/[/\\]/).pop() || newUri.fsPath;
+			log(`🔄 Renamed ${oldName} → ${newName}`);
+			// TODO: Add rename animation
+		}
 	});
 	context.subscriptions.push(subscription);
 }
