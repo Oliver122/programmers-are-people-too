@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { animateFix } from './animations';
 import { StatisticsTracker } from './statistics';
+import { getMotivationalHtml } from './motivationalPanel';
 
 const outputChannel = vscode.window.createOutputChannel('Programmers Are People Too');
 let statsTracker: StatisticsTracker;
@@ -10,6 +11,28 @@ function log(message: string) {
 	outputChannel.appendLine(message);
 }
 
+function showMotivationalPanel(context: vscode.ExtensionContext, message: string) {
+	// Create and show a new webview panel
+	const panel = vscode.window.createWebviewPanel(
+		'motivationalMessage',
+		'🎉 Your Achievements',
+		vscode.ViewColumn.One,
+		{
+			enableScripts: true,
+			retainContextWhenHidden: true
+		}
+	);
+
+	// Parse the message to extract parts
+	const lines = message.split('\n').filter(line => line.trim());
+	const title = lines[0].replace(/\*\*/g, '');
+	const achievements = lines.slice(2, -2); // Skip title and outro
+	const outro = lines[lines.length - 1];
+
+	// Set the webview's HTML content
+	panel.webview.html = getMotivationalHtml(title, achievements, outro);
+}
+
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "programmersarepeopletoo" is now active!');
 
@@ -17,24 +40,22 @@ export function activate(context: vscode.ExtensionContext) {
 	statsTracker = new StatisticsTracker(context);
 	log('📊 Statistics tracker initialized');
 
-	const cheerMeUpDisposable = vscode.commands.registerCommand('programmersarepeopletoo.cheermeup', () => {
-		const encouragingMessages = [
-			"🎉 You're doing amazing work! Keep coding!",
-			"✨ Every bug you fix makes you stronger!",
-			"🚀 Your code is making a difference!",
-			"💪 You've got this! One line at a time!",
-			"🌟 Great developers are made through persistence!",
-			"🔥 You're crushing those challenges!",
-			"💎 Your dedication to coding is inspiring!",
-			"🎯 Focus and determination - you have both!",
-			"🌈 Every error is just a step closer to success!",
-			"⚡ Your problem-solving skills are fantastic!"
-		];
-
-		const randomMessage = encouragingMessages[Math.floor(Math.random() * encouragingMessages.length)];
-		
+	const cheerMeUpDisposable = vscode.commands.registerCommand('programmersarepeopletoo.cheermeup', async () => {
 		log(`🤗 Cheer Me Up command executed - spreading positivity!`);
-		vscode.window.showInformationMessage(randomMessage);
+		
+		// Default to 1 hour
+		const defaultDuration = 60 * 60 * 1000; // 1 hour
+		
+		// Generate motivational message based on statistics
+		const motivationalMessage = statsTracker.generateMotivationalMessage(defaultDuration);
+		
+		// Show full message in output channel
+		outputChannel.appendLine('\n' + '='.repeat(60));
+		outputChannel.appendLine(motivationalMessage);
+		outputChannel.appendLine('='.repeat(60) + '\n');
+		
+		// Create and show webview panel
+		showMotivationalPanel(context, motivationalMessage);
 	});
 	context.subscriptions.push(cheerMeUpDisposable);
 	context.subscriptions.push(outputChannel);

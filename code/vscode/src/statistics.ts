@@ -291,6 +291,350 @@ export class StatisticsTracker {
 		}, null, 2);
 	}
 
+	/**
+	 * Get events within a specific time duration
+	 * @param durationMs Duration in milliseconds to look back
+	 * @returns Events that occurred or were resolved within the duration
+	 */
+	getEventsInDuration(durationMs: number): EventEntry[] {
+		const cutoffTime = Date.now() - durationMs;
+		return Array.from(this.events.values()).filter(
+			e => e.timestamp >= cutoffTime || (e.resolvedTimestamp && e.resolvedTimestamp >= cutoffTime)
+		);
+	}
+
+	/**
+	 * Generate a motivational message based on recent achievements
+	 * @param durationMs Duration in milliseconds to look back (default: 1 hour)
+	 * @returns Motivational message highlighting accomplishments
+	 */
+	generateMotivationalMessage(durationMs: number = 60 * 60 * 1000): string {
+		const recentEvents = this.getEventsInDuration(durationMs);
+		const cutoffTime = Date.now() - durationMs;
+
+		// Count achievements
+		const fixedDiagnostics = recentEvents.filter(
+			e => e.type === 'diagnostic' && e.resolvedTimestamp && e.resolvedTimestamp >= cutoffTime
+		);
+		const fixedErrors = fixedDiagnostics.filter(e => e.subtype === 'error').length;
+		const fixedWarnings = fixedDiagnostics.filter(e => e.subtype === 'warning').length;
+		const totalFixedIssues = fixedDiagnostics.length;
+
+		const successfulTasks = recentEvents.filter(
+			e => e.type === 'task' && e.subtype === 'success' && e.timestamp >= cutoffTime
+		);
+		const recoveredTasks = recentEvents.filter(
+			e => e.type === 'task' && e.subtype === 'failure' && e.resolvedTimestamp && e.resolvedTimestamp >= cutoffTime
+		);
+
+		const filesCreated = recentEvents.filter(
+			e => e.type === 'file' && e.subtype === 'created' && e.timestamp >= cutoffTime
+		).length;
+		const filesChanged = recentEvents.filter(
+			e => e.type === 'file' && e.subtype === 'changed' && e.timestamp >= cutoffTime
+		).length;
+
+		// Calculate time description
+		const timeDescription = this.getTimeDescription(durationMs);
+
+		// Build motivational message
+		const achievements: string[] = [];
+
+		if (totalFixedIssues > 0) {
+			const parts: string[] = [];
+			if (fixedErrors > 0) {
+				parts.push(`${fixedErrors} error${fixedErrors > 1 ? 's' : ''}`);
+			}
+			if (fixedWarnings > 0) {
+				parts.push(`${fixedWarnings} warning${fixedWarnings > 1 ? 's' : ''}`);
+			}
+			
+			if (parts.length > 0) {
+				achievements.push(`✨ Fixed ${parts.join(' and ')}`);
+			} else {
+				achievements.push(`✨ Fixed ${totalFixedIssues} issue${totalFixedIssues > 1 ? 's' : ''}`);
+			}
+		}
+
+		if (successfulTasks.length > 0 || recoveredTasks.length > 0) {
+			const totalTasks = successfulTasks.length + recoveredTasks.length;
+			achievements.push(`✅ Completed ${totalTasks} task${totalTasks > 1 ? 's' : ''} successfully`);
+		}
+
+		if (filesCreated > 0) {
+			achievements.push(`📝 Created ${filesCreated} new file${filesCreated > 1 ? 's' : ''}`);
+		}
+
+		if (filesChanged > 0) {
+			achievements.push(`💾 Modified ${filesChanged} file${filesChanged > 1 ? 's' : ''}`);
+		}
+
+		// Generate message based on achievements
+		if (achievements.length === 0) {
+			return `🌟 Keep going! Every line of code is progress, even if there are no visible wins yet in ${timeDescription}.`;
+		}
+
+		const intro = this.getMotivationalIntro(totalFixedIssues, achievements.length);
+		const achievementList = achievements.join('\n');
+		const outro = this.getMotivationalOutro(totalFixedIssues);
+
+		return `${intro}\n\n${achievementList}\n\n${outro}`;
+	}
+
+	/**
+	 * Get a motivational introduction based on achievements
+	 */
+	private getMotivationalIntro(fixedIssues: number, achievementCount: number): string {
+		const messageBank = this.getIntroMessages();
+		
+		if (fixedIssues >= 10) {
+			return this.randomFrom(messageBank.epic);
+		} else if (fixedIssues >= 5) {
+			return this.randomFrom(messageBank.high);
+		} else if (achievementCount >= 3) {
+			return this.randomFrom(messageBank.medium);
+		} else if (achievementCount >= 1) {
+			return this.randomFrom(messageBank.low);
+		}
+		return this.randomFrom(messageBank.minimal);
+	}
+
+	/**
+	 * Get a motivational outro based on achievements
+	 */
+	private getMotivationalOutro(fixedIssues: number): string {
+		const messageBank = this.getOutroMessages();
+		
+		if (fixedIssues >= 10) {
+			return this.randomFrom(messageBank.epic);
+		} else if (fixedIssues >= 5) {
+			return this.randomFrom(messageBank.high);
+		}
+		return this.randomFrom(messageBank.general);
+	}
+
+	/**
+	 * Intro message bank organized by achievement level
+	 */
+	private getIntroMessages() {
+		return {
+			epic: [
+				"🎉 **Amazing work!** Look at what you've accomplished:",
+				"🔥 **Incredible!** You're absolutely crushing it:",
+				"⚡ **Phenomenal!** Your productivity is off the charts:",
+				"💎 **Outstanding!** You're coding like a legend:",
+				"🌟 **Spectacular!** Check out these achievements:",
+				"🚀 **Wow!** You're on an absolute roll:",
+				"👑 **Legendary!** Your skill is showing:",
+				"✨ **Brilliant work!** Look at this progress:",
+				"🎯 **Perfect execution!** You've been unstoppable:",
+				"🏆 **Champion mode!** Here's what you've conquered:",
+				"💪 **Powerhouse!** Your coding prowess is impressive:",
+				"🌈 **Magnificent!** You're creating magic:",
+				"⭐ **Superb!** Your dedication is inspiring:",
+				"🎊 **Exceptional!** You're exceeding expectations:",
+				"🔮 **Masterful!** Your expertise is evident:",
+				"🎨 **Artistry!** You're crafting beautiful code:",
+				"⚙️ **Engineering excellence!** Check this out:",
+				"🌠 **Stellar performance!** You're shining bright:",
+				"🎪 **Show-stopping!** Your achievements are remarkable:",
+				"💫 **Extraordinary!** You're making waves:"
+			],
+			high: [
+				"🚀 **You're on fire!** Check out your progress:",
+				"⚡ **Blazing through!** Look at what you've done:",
+				"💪 **Strong momentum!** Your achievements speak volumes:",
+				"🌟 **Shining bright!** Here's your impressive work:",
+				"🔥 **Hot streak!** You're making serious progress:",
+				"✨ **Sparkling performance!** Check these wins:",
+				"🎯 **Right on target!** Your focus is paying off:",
+				"🏃 **Moving fast!** Look at this productivity:",
+				"💡 **Brilliant pace!** You're solving problems left and right:",
+				"🌊 **Riding the wave!** Your flow is incredible:",
+				"⭐ **Star performer!** Here's what you've achieved:",
+				"🎪 **Impressive show!** You're doing great:",
+				"🌅 **Rising to the occasion!** Check out these wins:",
+				"🔋 **Fully charged!** Your energy is contagious:",
+				"🎵 **In the zone!** Your rhythm is perfect:",
+				"🌺 **Flourishing!** Look at this beautiful progress:",
+				"🎭 **Outstanding performance!** You're nailing it:",
+				"🌻 **Growing strong!** Your skills are blooming:",
+				"🎬 **Action-packed!** You're getting things done:",
+				"🌙 **Moonshot worthy!** Your ambition shows:"
+			],
+			medium: [
+				"💪 **Great progress!** Here's what you've achieved:",
+				"👏 **Well done!** Your efforts are showing:",
+				"🌟 **Looking good!** Check out your wins:",
+				"✅ **Solid work!** You're making headway:",
+				"🎯 **On track!** Here's your progress:",
+				"🌱 **Growing steadily!** Look at these improvements:",
+				"📈 **Trending up!** Your work is paying off:",
+				"🎨 **Creating value!** Here's what you've built:",
+				"🔧 **Building well!** Your progress is clear:",
+				"🌿 **Cultivating quality!** Check these achievements:",
+				"💡 **Smart moves!** You're solving problems:",
+				"🎪 **Nice show!** Your skills are developing:",
+				"🌤️ **Clearing the path!** Look at this progress:",
+				"🔨 **Hammering through!** You're making it happen:",
+				"🎵 **Finding your rhythm!** Here's your work:",
+				"🌾 **Harvesting results!** Check out these wins:",
+				"🎯 **Hitting marks!** Your aim is improving:",
+				"🌸 **Blossoming skills!** Look at what you've done:",
+				"🔑 **Unlocking potential!** Here's your progress:",
+				"🎨 **Painting progress!** You're creating something good:"
+			],
+			low: [
+				"🌟 **Nice work!** You're making progress:",
+				"👍 **Good job!** Every step counts:",
+				"✨ **Keep going!** You're building momentum:",
+				"🌱 **Making moves!** Here's what you've done:",
+				"💫 **Progress noted!** You're on the right path:",
+				"🎯 **Steps forward!** Your effort matters:",
+				"🌿 **Growing!** Check out your achievements:",
+				"📍 **Moving ahead!** You're making it happen:",
+				"🎈 **Rising up!** Your work is adding up:",
+				"🌤️ **Looking bright!** Here's your progress:",
+				"🔹 **Small wins!** They all count:",
+				"🌊 **Flowing forward!** You're making waves:",
+				"🎨 **Creating!** Every change is progress:",
+				"🔮 **Developing!** You're building something:",
+				"🌸 **Blooming!** Your skills are growing:",
+				"🎪 **Performing!** You're getting things done:",
+				"💡 **Learning!** Every fix teaches something:",
+				"🌺 **Progressing!** You're moving in the right direction:",
+				"🎭 **Improving!** Your code is getting better:",
+				"🌻 **Advancing!** Here's what you've accomplished:"
+			],
+			minimal: [
+				"👏 **Keep it up!** Here's your progress:",
+				"🌱 **Every bit helps!** You're moving forward:",
+				"💪 **Stay strong!** Progress is progress:",
+				"✨ **You're doing it!** Here's what you've got:",
+				"🎯 **On the path!** Every step matters:",
+				"🌿 **Growing slowly!** That's still growth:",
+				"📌 **Noted!** Your work counts:",
+				"🔹 **Building up!** Small steps are still steps:",
+				"🌤️ **Hang in there!** You're making progress:",
+				"💡 **Keep learning!** You're improving:",
+				"🎈 **Stay positive!** Progress is happening:",
+				"🌸 **One step at a time!** You're moving:",
+				"🎨 **Creating bit by bit!** Keep going:",
+				"🔮 **Trust the process!** You're getting there:",
+				"🌊 **Riding the tide!** Forward is forward:",
+				"🎪 **Show up!** Consistency wins:",
+				"💫 **Believe!** You're making it happen:",
+				"🌺 **Persistence pays!** Keep at it:",
+				"🎵 **Find your groove!** It's coming:",
+				"🌻 **Day by day!** You're progressing:"
+			]
+		};
+	}
+
+	/**
+	 * Outro message bank organized by achievement level
+	 */
+	private getOutroMessages() {
+		return {
+			epic: [
+				"Your dedication is incredible! You're crushing it! 🎯",
+				"You're a coding powerhouse! Absolutely phenomenal! 💎",
+				"This level of productivity is inspiring! Keep dominating! 🏆",
+				"You're not just fixing bugs, you're crafting excellence! ✨",
+				"Your persistence is legendary! You're unstoppable! 🚀",
+				"Code quality champion! You're setting the bar high! 👑",
+				"Absolute mastery on display! You're a true professional! ⚡",
+				"You're turning complexity into clarity! Brilliant work! 🌟",
+				"Your problem-solving skills are next level! Phenomenal! 💪",
+				"You're not just writing code, you're creating art! 🎨",
+				"This is what excellence looks like! You're amazing! 🔥",
+				"You're proving that great developers are made, not born! 🌈",
+				"Your code is getting stronger with every fix! Outstanding! 💫",
+				"You're building something remarkable! Keep this energy! ⭐",
+				"Your technical prowess is shining through! Spectacular! 🎊",
+				"You're turning challenges into triumphs! Incredible! 🎪",
+				"This is peak performance! You're in the zone! 🔮",
+				"Your expertise is evident in every line! Magnificent! 🌠",
+				"You're not just solving problems, you're preventing them! 🎯",
+				"Your commitment to quality is truly impressive! Bravo! 🎭"
+			],
+			high: [
+				"You're solving problems like a pro! 🌈",
+				"Your momentum is building beautifully! Keep it up! 🚀",
+				"Every fix makes you a stronger developer! Awesome! 💪",
+				"You're making your codebase better with each change! 🔥",
+				"Your focus is paying off big time! Great work! ✨",
+				"You're turning bugs into features! Well done! 🎯",
+				"Your skills are leveling up with each fix! 💡",
+				"You're proving that persistence wins! Keep going! 🌟",
+				"Your code quality is improving rapidly! 📈",
+				"You're building confidence with every solution! ⚡",
+				"Your problem-solving instincts are sharp! 🎪",
+				"You're making complexity look simple! Nice! 🌊",
+				"Your dedication to improvement shines through! 🌅",
+				"You're crafting cleaner code with each iteration! 🎨",
+				"Your technical growth is evident! Keep pushing! 🔋",
+				"You're turning obstacles into opportunities! 🌺",
+				"Your consistency is your superpower! 🎵",
+				"You're debugging like a detective! Impressive! 🔍",
+				"Your attention to detail is paying off! 🌻",
+				"You're making software better, one fix at a time! 🎬"
+			],
+			general: [
+				"You're making your code better, one fix at a time! 💎",
+				"Every bug you squash makes you a stronger developer! 🦸",
+				"Your persistence is paying off! Keep up the excellent work! 🔥",
+				"Great developers are built through moments like these! ⚡",
+				"You're turning challenges into victories! 🏆",
+				"Each fix is a step toward mastery! Keep going! 🌟",
+				"Your code is evolving, and so are you! 🌱",
+				"You're building something great, bit by bit! 🔨",
+				"Every improvement counts! You're doing great! 👏",
+				"Your journey to better code continues! 🛤️",
+				"You're learning and growing with every change! 📚",
+				"Small wins add up to big victories! 🎯",
+				"Your commitment to quality shows! 💪",
+				"You're making progress that matters! ✨",
+				"Each fix is proof of your dedication! 🌿",
+				"You're crafting better software! Keep it up! �",
+				"Your effort is shaping excellent code! 🔧",
+				"You're on the path to greatness! 🌈",
+				"Every line you improve makes a difference! 💡",
+				"You're building your expertise one fix at a time! 🌺",
+				"Your code is becoming more robust! 🛡️",
+				"You're writing your success story in code! 📖",
+				"Each solution brings new understanding! 🔮",
+				"You're making software that matters! 🌍",
+				"Your growth as a developer is clear! �"
+			]
+		};
+	}
+
+	/**
+	 * Helper method to get a random item from an array
+	 */
+	private randomFrom<T>(array: T[]): T {
+		return array[Math.floor(Math.random() * array.length)];
+	}
+
+	/**
+	 * Convert duration in milliseconds to human-readable description
+	 */
+	private getTimeDescription(durationMs: number): string {
+		const minutes = Math.floor(durationMs / (60 * 1000));
+		const hours = Math.floor(durationMs / (60 * 60 * 1000));
+		const days = Math.floor(durationMs / (24 * 60 * 60 * 1000));
+
+		if (days >= 1) {
+			return `the last ${days} day${days > 1 ? 's' : ''}`;
+		} else if (hours >= 1) {
+			return `the last ${hours} hour${hours > 1 ? 's' : ''}`;
+		} else if (minutes >= 1) {
+			return `the last ${minutes} minute${minutes > 1 ? 's' : ''}`;
+		}
+		return 'the last few moments';
+	}
+
 	// Private helper methods
 
 	private generateEventId(type: string, subtype: string, description: string): string {
