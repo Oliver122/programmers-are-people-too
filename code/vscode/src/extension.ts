@@ -1,138 +1,86 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
+const outputChannel = vscode.window.createOutputChannel('Programmers Are People Too');
+
 export function activate(context: vscode.ExtensionContext) {
-
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "programmersarepeopletoo" is now active!');
-
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
 	const disposable = vscode.commands.registerCommand('programmersarepeopletoo.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
 		vscode.window.showInformationMessage('Hello World from ProgrammersArePeopleToo! Apple');
 	});
-
 	context.subscriptions.push(disposable);
-
-	// Set up diagnostic monitoring for positive reinforcement
+	context.subscriptions.push(outputChannel);
 	setupDiagnosticMonitoring(context);
-
 }
 
-/**
- * Sets up diagnostic monitoring to track errors/warnings and celebrate improvements
- */
-function setupDiagnosticMonitoring(context: vscode.ExtensionContext) {
-	const outputChannel = vscode.window.createOutputChannel('ProgrammersArePeopleToo');
-	context.subscriptions.push(outputChannel);
+type DiagKey = string; // unique per diagnostic instance
+const keyOf = (d: vscode.Diagnostic) =>
+	`${d.severity}:${d.message}:${d.range.start.line}:${d.range.start.character}:${d.range.end.line}:${d.range.end.character}`;
+type FixedRangesCallback = (uri: vscode.Uri, fixedRanges: vscode.Range[], fixedDiagnostics: vscode.Diagnostic[]) => void;
 
-	// Track diagnostic state per file to detect improvements
-	const diagnosticState = new Map<string, number>();
-	let lastNotificationTime = 0;
+function subscribeToEvents(onFixedRanges?: FixedRangesCallback): vscode.Disposable {
+	const lastByFile = new Map<string, Map<DiagKey, vscode.Diagnostic>>();
 
-	const diagnosticSubscription = vscode.languages.onDidChangeDiagnostics(event => {
-		// Process each URI that had diagnostic changes
+	const diagSub = vscode.languages.onDidChangeDiagnostics((event) => {
 		for (const uri of event.uris) {
-			const diagnostics = vscode.languages.getDiagnostics(uri);
-			const currentCount = diagnostics.length;
-			const previousCount = diagnosticState.get(uri.toString()) || 0;
+			const fileKey = uri.toString();
+			const currArr = vscode.languages.getDiagnostics(uri);
 
-			// Log diagnostic details to console
-			console.log(`📊 Diagnostics changed for ${uri.fsPath}:`);
-			console.log(`   Previous: ${previousCount} issues, Current: ${currentCount} issues`);
+			const currMap = new Map<DiagKey, vscode.Diagnostic>();
+			for (const d of currArr) { currMap.set(keyOf(d), d); }
+			const prevMap = lastByFile.get(fileKey) ?? new Map<DiagKey, vscode.Diagnostic>();
 
-			// Log individual diagnostics
-			diagnostics.forEach((diag, index) => {
-				const severityName = getSeverityName(diag.severity);
-				console.log(`   ${index + 1}. [${severityName}] ${diag.message}`);
-				console.log(`      Line ${diag.range.start.line + 1}, Column ${diag.range.start.character + 1}`);
-				console.log(`      Source: ${diag.source || 'Unknown'}`);
-			});
-
-			// Update output channel
-			outputChannel.appendLine(`[${new Date().toLocaleTimeString()}] ${uri.fsPath}: ${currentCount} issue(s)`);
-			
-			// Detect positive changes (fewer errors/warnings)
-			if (previousCount > currentCount) {
-				const improvement = previousCount - currentCount;
-				console.log(`🎉 IMPROVEMENT DETECTED! ${improvement} issue(s) resolved!`);
-				outputChannel.appendLine(`🎉 Improvement: ${improvement} issue(s) resolved!`);
-				
-				// Celebrate the improvement (throttled to avoid spam)
-				const now = Date.now();
-				if (now - lastNotificationTime > 2000) { // 2 second throttle
-					vscode.window.showInformationMessage(
-						`🎉 Great work! You fixed ${improvement} issue(s) in ${uri.fsPath.split('/').pop()}`
+			const fixedRanges: vscode.Range[] = [];
+			const fixedDiagnostics: vscode.Diagnostic[] = [];
+			for (const [k, dPrev] of prevMap) {
+				if (!currMap.has(k)) {
+					// Check if there's still a diagnostic at the same location
+					const stillHasIssueAtLocation = currArr.some(d => 
+						d.range.start.line === dPrev.range.start.line &&
+						d.range.start.character === dPrev.range.start.character
 					);
-					lastNotificationTime = now;
+					
+					// Only celebrate if the diagnostic is truly gone, not just changed
+					if (!stillHasIssueAtLocation) {
+						fixedRanges.push(dPrev.range);
+						fixedDiagnostics.push(dPrev);
+					}
 				}
-
-				// TODO: Add visual celebrations (sparkles, animations, etc.)
-				celebrateImprovement(improvement, uri);
 			}
 
-			// Special celebration for going from errors to zero
-			if (previousCount > 0 && currentCount === 0) {
-				console.log('✨ ALL CLEAR! No more issues in this file! ✨');
-				outputChannel.appendLine('✨ ALL CLEAR! File is now error-free! ✨');
-				
-				// TODO: Add special "all clear" celebration (sparkles, confetti)
-				celebrateAllClear(uri);
+			if (fixedRanges.length) {
+				if (onFixedRanges) {
+					onFixedRanges(uri, fixedRanges, fixedDiagnostics);
+				}
 			}
 
-			// Update state
-			diagnosticState.set(uri.toString(), currentCount);
+			lastByFile.set(fileKey, currMap);
 		}
 	});
-
-	context.subscriptions.push(diagnosticSubscription);
-	
-	// Log when monitoring starts
-	console.log('🔍 Diagnostic monitoring activated - ready to celebrate your wins!');
-	outputChannel.appendLine('🔍 Diagnostic monitoring activated - ready to celebrate your wins!');
+	return diagSub;
 }
 
-/**
- * Convert VS Code diagnostic severity to readable name
- */
-function getSeverityName(severity: vscode.DiagnosticSeverity): string {
-	switch (severity) {
-		case vscode.DiagnosticSeverity.Error: return 'ERROR';
-		case vscode.DiagnosticSeverity.Warning: return 'WARNING';
-		case vscode.DiagnosticSeverity.Information: return 'INFO';
-		case vscode.DiagnosticSeverity.Hint: return 'HINT';
-		default: return 'UNKNOWN';
-	}
+function animate(context: vscode.ExtensionContext, uri: vscode.Uri, ranges: vscode.Range[], durationMs = 900) {
+	const celebrateDeco = vscode.window.createTextEditorDecorationType({
+		textDecoration: 'underline wavy green',
+		overviewRulerColor: 'green',
+		overviewRulerLane: vscode.OverviewRulerLane.Right,
+	});
+	context.subscriptions.push(celebrateDeco);
+
+	const editor = vscode.window.visibleTextEditors.find(e => e.document.uri.toString() === uri.toString());
+    if (!editor || ranges.length === 0) return;
+    editor.setDecorations(celebrateDeco, ranges);
+    setTimeout(() => editor.setDecorations(celebrateDeco, []), durationMs);
 }
 
-/**
- * Celebrate when issues are resolved
- */
-function celebrateImprovement(issuesFixed: number, uri: vscode.Uri) {
-	// TODO: Implement visual celebrations
-	// - Green highlight animation
-	// - Smooth pulse effect
-	// - Sparkle particles
-	console.log(`🌟 Celebrating ${issuesFixed} fixes in ${uri.fsPath}`);
+function setupDiagnosticMonitoring(context: vscode.ExtensionContext) {
+	const subscription = subscribeToEvents((uri, fixedRanges, fixedDiagnostics) => {
+		const fileName = uri.fsPath.split(/[/\\]/).pop() || uri.fsPath;
+		console.log(`✨ Fixed ${fixedRanges.length} issues in ${fileName}`);
+		outputChannel.appendLine(`✨ Fixed ${fixedRanges.length} issues in ${fileName}`);
+		animate(context, uri, fixedRanges);
+	});
+	context.subscriptions.push(subscription);
 }
 
-/**
- * Special celebration for clearing all issues
- */
-function celebrateAllClear(uri: vscode.Uri) {
-	// TODO: Implement special "all clear" celebrations  
-	// - Confetti animation
-	// - Success sparkles
-	// - Satisfying completion effects
-	console.log(`✨ All clear celebration for ${uri.fsPath}!`);
-}
-
-// This method is called when your extension is deactivated
 export function deactivate() { }
