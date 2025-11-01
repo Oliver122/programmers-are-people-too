@@ -2,35 +2,49 @@
 
 ![Programmers Are People Too Logo](assets/ProgrammersArepeopleToo.png)
 
-> *Breaking the negative feedback loop in development environments with positive reinforcement*
+*Improving the programming experience by giving Positive feedback (Applaus on successes) in a addition to the prevalent negative Feedback (Error Highlighting).* 
 
-## The Problem 🚨
+> Like good teachers who use green pens to highlight excellent work alongside red pens for corrections, we want development tools that celebrate achievements, not just point out problems.
 
-Every day, developers face a courtroom of development tools:
+
+## Introduction
+### The Problem 🚨
+
+Software developing often feels like in the courtroom:
 - **Red underlines** screaming about errors
 - **Yellow warnings** nagging about potential issues  
 - **Angry compiler messages** judging our every keystroke
-- **Success = silence** - the mere absence of problems
 
-This creates a **negative feedback loop** that makes programming feel tedious and draining. We celebrate nothing. We only notice when things go wrong.
+This makes programming feel tedious and draining.
 
-## Our Solution 🌟
 
-**What if development tools celebrated your wins instead of just punishing your mistakes?**
+### The Solution 
 
-We're building editor extensions that introduce **positive reinforcement** into your coding workflow:
+We move the programming experience from in the dock like to be 'on stage' with an enthusiastic audience.
 
-### ✨ Celebration Moments
+- **Applaus and Fireworks** on success.
+- **Visual Feedback** on inspecting.
+
+Programming becomes rocking the crowds ツ
+
+## Conceptual Overview
+### Positive Feedback Types
 - **Sparkles** when your linter or prettier goes silent (errors → clean code)
 - **Smooth pulse** animations on successful builds
 - **Confetti** in the terminal after clean CI runs
 - **Green highlights** when syntax errors disappear (red → normal)
+
+### Event Selection
+- **Predefined Events** fixing errors or successful builds and runs
 - **AI-powered appreciation** for especially clever or clean code snippets
 
-### 🎯 The Vision
-Like good teachers who use green pens to highlight excellent work alongside red pens for corrections, we want development tools that celebrate achievements, not just point out problems.
 
 ## What We're Building 🛠️
+
+We build tools to provide positive feedback during programming. 
+
+
+[to be extented]
 
 ### VS Code Extension (`code/vscode/`)
 - Hooks into the Language Server Protocol (LSP) for real-time feedback
