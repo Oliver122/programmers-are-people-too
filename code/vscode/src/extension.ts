@@ -17,6 +17,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(outputChannel);
 	setupDiagnosticMonitoring(context);
 	setupTaskMonitoring(context);
+	setupSaveMonitoring(context);
 
 	//Example to extract config values
 	/* vscode.workspace.onDidChangeConfiguration((event) => {
@@ -102,6 +103,15 @@ function setupTaskMonitoring(context: vscode.ExtensionContext) {
 		} else {
 			log(`❌ Task "${taskName}" failed with code ${exitCode}`);
 		}
+	});
+	context.subscriptions.push(subscription);
+}
+
+function setupSaveMonitoring(context: vscode.ExtensionContext) {
+	const subscription = vscode.workspace.onDidSaveTextDocument((document) => {
+		const fileName = document.uri.fsPath.split(/[/\\]/).pop() || document.uri.fsPath;
+		log(`💾 Saved ${fileName}`);
+		// TODO: Add save animation
 	});
 	context.subscriptions.push(subscription);
 }
