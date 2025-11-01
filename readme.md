@@ -85,6 +85,15 @@ We believe **developers deserve positive feedback**. Join us in changing how dev
 3. **Multi-editor support** - positive vibes for everyone
 4. **Real-time responsiveness** - celebrate the moment it happens
 
+## Authors 👥
+
+This project was created by:
+
+- **[Oliver](https://github.com/Oliver122)** ([@Oliver122](https://github.com/Oliver122))
+- **[Dan](https://github.com/dan-42)** ([@dan-42](https://github.com/dan-42))
+- **[Andrey Dodonov](https://github.com/AndreyDodonov-EH)** ([@AndreyDodonov-EH](https://github.com/AndreyDodonov-EH))
+- **[Kleeblitz](https://github.com/Kleeblitz)** ([@Kleeblitz](https://github.com/Kleeblitz))
+
 ## License 📄
 
 MIT License - Spread the positive vibes! 🎉
