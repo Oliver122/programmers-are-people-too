@@ -11,6 +11,22 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(disposable);
 	context.subscriptions.push(outputChannel);
 	setupDiagnosticMonitoring(context);
+
+	//Example to extract config values
+	/* vscode.workspace.onDidChangeConfiguration((event) => {
+    if (event.affectsConfiguration("ProgrammersArePeopleToo.enable")) {
+      const config = vscode.workspace.getConfiguration(
+        "ProgrammersArePeopleToo"
+      );
+      const isEnabled = config.get<boolean>("enable");
+
+      if (isEnabled) {
+        console.log("Extension activated: Programmers are people too!");
+      } else {
+        console.log("Extension deactivated: Programmers are people too!");
+      }
+    }
+  }); */
 }
 
 type DiagKey = string; // unique per diagnostic instance
