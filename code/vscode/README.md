@@ -1,6 +1,6 @@
-# Programmers Are People Too ✨
+![Programmers Are People Too Logo](banner.svg)
 
-> *Celebrate your coding wins! Break the negative feedback loop with positive reinforcement in VS Code.*
+
 
 ## Why This Extension Exists �
 

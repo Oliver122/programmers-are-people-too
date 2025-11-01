@@ -79,3 +79,8 @@ Desktop.ini
 # Build artifacts
 build/
 *.tsbuildinfo
+
+# Copied assets for VS Code extension packaging
+code/vscode/icon.png
+code/vscode/banner.svg
+code/vscode/LICENSE.md

@@ -91,7 +91,8 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "npm run copy-assets && npm run compile",
+    "copy-assets": "node -e \"const fs = require('fs'); const path = require('path'); fs.copyFileSync(path.join(__dirname, '../../assets/icon.png'), path.join(__dirname, 'icon.png')); fs.copyFileSync(path.join(__dirname, '../../LICENSE.md'), path.join(__dirname, 'LICENSE.md')); fs.copyFileSync(path.join(__dirname, '../../assets/banner.svg'), path.join(__dirname, 'banner.svg'));\"",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
