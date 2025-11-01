@@ -7,5 +7,10 @@
 		"out": true // set this to false to include "out" folder in search results
 	},
 	// Turn off tsc task auto detection since we have the necessary tasks as npm scripts
-	"typescript.tsc.autoDetect": "off"
+	"typescript.tsc.autoDetect": "off",
+	"vscode_custom_css.imports": [
+  "file:///C:/_PROJECTS/programmers-are-people-too/code/vscode/.vscode-hacks/custom.css",
+  "file:///C:/_PROJECTS/programmers-are-people-too/code/vscode/.vscode-hacks/custom.js"
+]
+
 }

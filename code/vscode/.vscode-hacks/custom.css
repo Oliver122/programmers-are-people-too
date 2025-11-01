@@ -1,0 +1,94 @@
+/* ===== Programmers-Are-People demo CSS (lens edition) ===== */
+
+/* Gentle pulse on the status bar (kept) */
+.monaco-workbench .part.statusbar { position: relative; }
+.pap-status-pulse { animation: pap-pulse 2.2s ease-in-out infinite; }
+@keyframes pap-pulse {
+  0%,100% { filter: brightness(1); }
+  50%     { filter: brightness(1.12); }
+}
+
+/* Full-window sweep (kept) */
+.pap-sweep {
+  position: fixed;
+  top: 0; left: -30%;
+  width: 30%; height: 100vh;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.08) 50%, rgba(255,255,255,0) 100%);
+  animation: pap-sweep 800ms ease-out forwards;
+  z-index: 9999;
+}
+@keyframes pap-sweep { to { transform: translateX(400%); } }
+
+/* === Spotlight / Lens overlay ===
+   JS sets --cx, --cy, --r in px (viewport coords) */
+.pap-lens {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10000;
+  /* Dim + blur everything */
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(2px);
+  /* Punch a circular "hole" with CSS mask */
+  --cx: 50vw; --cy: 50vh; --r: 160px;
+  -webkit-mask:
+    radial-gradient(circle at var(--cx) var(--cy),
+      transparent calc(var(--r) - 2px),
+      black calc(var(--r) + 2px));
+  mask:
+    radial-gradient(circle at var(--cx) var(--cy),
+      transparent calc(var(--r) - 2px),
+      black calc(var(--r) + 2px));
+}
+
+/* optional glowing ring around the lens */
+.pap-lens::after {
+  content: "";
+  position: fixed;
+  left: calc(var(--cx) - var(--r));
+  top: calc(var(--cy) - var(--r));
+  width: calc(var(--r) * 2);
+  height: calc(var(--r) * 2);
+  border-radius: 50%;
+  box-shadow: 0 0 24px 6px rgba(255,255,255,0.12),
+              0 0 0 2px rgba(255,255,255,0.25) inset;
+  pointer-events: none;
+  animation: pap-lens-pulse 2.4s ease-in-out infinite;
+}
+@keyframes pap-lens-pulse {
+  0%,100% { opacity: 0.9; transform: scale(1); }
+  50%     { opacity: 0.7; transform: scale(1.02); }
+}
+
+/* ========= REASSURE: full-screen -> zero, constant speed (linear) ========= */
+.pap-reassure {
+  position: fixed; inset: 0; pointer-events: none; z-index: 100000;
+}
+.pap-reassure::before {
+  content: "";
+  position: fixed;
+  left: var(--cx); top: var(--cy);
+  --rBase: 120px;
+  width: calc(var(--rBase) * 2); height: calc(var(--rBase) * 2);
+  transform: translate(-50%, -50%) scale(var(--s0, 1));
+  border-radius: 50%;
+  box-shadow:
+    0 0 22px 6px rgba(255,255,255,0.14),
+    0 0 0 2px rgba(255,255,255,0.26) inset;
+  background:
+    radial-gradient(circle, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.0) 60%);
+  animation: pap-reassure-to-zero var(--dur, 240ms) linear forwards;
+}
+.pap-reassure::after {
+  content: "";
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.20);
+  animation: pap-reassure-dim var(--dur, 240ms) linear forwards;
+}
+@keyframes pap-reassure-to-zero {
+  from { opacity: .95; transform: translate(-50%,-50%) scale(var(--s0, 1)); }
+  to   { opacity: 0;   transform: translate(-50%,-50%) scale(0); }
+}
+@keyframes pap-reassure-dim { from { opacity: .18; } to { opacity: 0; } }
