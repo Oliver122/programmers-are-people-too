@@ -19,6 +19,7 @@ export function activate(context: vscode.ExtensionContext) {
 	setupTaskMonitoring(context);
 	setupSaveMonitoring(context);
 	setupFileCreationMonitoring(context);
+	setupFileRenameMonitoring(context);
 
 	//Example to extract config values
 	/* vscode.workspace.onDidChangeConfiguration((event) => {
@@ -123,6 +124,18 @@ function setupFileCreationMonitoring(context: vscode.ExtensionContext) {
 			const fileName = uri.fsPath.split(/[/\\]/).pop() || uri.fsPath;
 			log(`✨ Created ${fileName}`);
 			// TODO: Add creation animation
+		}
+	});
+	context.subscriptions.push(subscription);
+}
+
+function setupFileRenameMonitoring(context: vscode.ExtensionContext) {
+	const subscription = vscode.workspace.onDidRenameFiles((event) => {
+		for (const { oldUri, newUri } of event.files) {
+			const oldName = oldUri.fsPath.split(/[/\\]/).pop() || oldUri.fsPath;
+			const newName = newUri.fsPath.split(/[/\\]/).pop() || newUri.fsPath;
+			log(`🔄 Renamed ${oldName} → ${newName}`);
+			// TODO: Add rename animation
 		}
 	});
 	context.subscriptions.push(subscription);
