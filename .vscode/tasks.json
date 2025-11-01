@@ -4,6 +4,7 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
+			"label": "npm: watch",
 			"type": "npm",
 			"script": "watch",
 			"problemMatcher": "$tsc-watch",
@@ -11,7 +12,9 @@
 			"presentation": {
 				"reveal": "never"
 			},
-			//"path": "${workspaceFolder}\\code\\vscode",
+			"options": {
+				"cwd": "${workspaceFolder}/code/vscode"
+			},
 			"group": {
 				"kind": "build",
 				"isDefault": true
