@@ -20,7 +20,7 @@ This makes programming feel tedious and draining.
 
 ### The Solution 
 
-We move the programming experience from in the dock like to be 'on stage' with an enthusiastic audience.
+We move the programming experience from 'in the dock in a courtroom' to be 'on stage with an enthusiastic audience'.
 
 - **Applaus and Fireworks** on success.
 - **Visual Feedback** on inspecting.
