@@ -1,7 +1,83 @@
+import { MotivationalData } from './statistics';
+
 /**
  * Generates HTML for the motivational achievement panel
  */
-export function getMotivationalHtml(title: string, achievements: string[], outro: string): string {
+export function getMotivationalHtml(data: MotivationalData): string {
+	// Build achievement cards from the data
+	const achievementCards: string[] = [];
+	
+	if (data.achievements.diagnostics.total > 0) {
+		const parts: string[] = [];
+		if (data.achievements.diagnostics.errors > 0) {
+			parts.push(`${data.achievements.diagnostics.errors} error${data.achievements.diagnostics.errors > 1 ? 's' : ''}`);
+		}
+		if (data.achievements.diagnostics.warnings > 0) {
+			parts.push(`${data.achievements.diagnostics.warnings} warning${data.achievements.diagnostics.warnings > 1 ? 's' : ''}`);
+		}
+		if (data.achievements.diagnostics.hints > 0) {
+			parts.push(`${data.achievements.diagnostics.hints} hint${data.achievements.diagnostics.hints > 1 ? 's' : ''}`);
+		}
+		
+		achievementCards.push(`
+			<div class="achievement ${data.level}">
+				<div class="achievement-icon">✨</div>
+				<div class="achievement-content">
+					<div class="achievement-title">Fixed ${parts.join(' and ')}</div>
+					<div class="achievement-subtitle">${data.achievements.diagnostics.total} issue${data.achievements.diagnostics.total > 1 ? 's' : ''} resolved</div>
+				</div>
+			</div>
+		`);
+	}
+	
+	if (data.achievements.tasks.total > 0) {
+		achievementCards.push(`
+			<div class="achievement ${data.level}">
+				<div class="achievement-icon">✅</div>
+				<div class="achievement-content">
+					<div class="achievement-title">Completed ${data.achievements.tasks.total} task${data.achievements.tasks.total > 1 ? 's' : ''}</div>
+					<div class="achievement-subtitle">${data.achievements.tasks.successful} successful${data.achievements.tasks.recovered > 0 ? `, ${data.achievements.tasks.recovered} recovered` : ''}</div>
+				</div>
+			</div>
+		`);
+	}
+	
+	if (data.achievements.files.created > 0) {
+		achievementCards.push(`
+			<div class="achievement ${data.level}">
+				<div class="achievement-icon">📝</div>
+				<div class="achievement-content">
+					<div class="achievement-title">Created ${data.achievements.files.created} new file${data.achievements.files.created > 1 ? 's' : ''}</div>
+					<div class="achievement-subtitle">New files added to your project</div>
+				</div>
+			</div>
+		`);
+	}
+	
+	if (data.achievements.files.changed > 0) {
+		achievementCards.push(`
+			<div class="achievement ${data.level}">
+				<div class="achievement-icon">💾</div>
+				<div class="achievement-content">
+					<div class="achievement-title">Modified ${data.achievements.files.changed} file${data.achievements.files.changed > 1 ? 's' : ''}</div>
+					<div class="achievement-subtitle">Changes saved and tracked</div>
+				</div>
+			</div>
+		`);
+	}
+	
+	if (data.achievements.files.renamed > 0) {
+		achievementCards.push(`
+			<div class="achievement ${data.level}">
+				<div class="achievement-icon">🔄</div>
+				<div class="achievement-content">
+					<div class="achievement-title">Renamed ${data.achievements.files.renamed} file${data.achievements.files.renamed > 1 ? 's' : ''}</div>
+					<div class="achievement-subtitle">Better organization</div>
+				</div>
+			</div>
+		`);
+	}
+
 	return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -64,9 +140,11 @@ export function getMotivationalHtml(title: string, achievements: string[], outro
 		}
 		
 		.achievement {
-			font-size: 24px;
-			margin: 24px 0;
-			padding: 20px 28px;
+			display: flex;
+			align-items: center;
+			gap: 20px;
+			margin: 20px 0;
+			padding: 24px 28px;
 			background: rgba(255, 255, 255, 0.15);
 			border-radius: 16px;
 			backdrop-filter: blur(5px);
@@ -74,6 +152,32 @@ export function getMotivationalHtml(title: string, achievements: string[], outro
 			animation: fadeIn 0.6s ease-out forwards;
 			opacity: 0;
 			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+			transition: transform 0.2s ease;
+		}
+		
+		.achievement:hover {
+			transform: translateX(5px);
+		}
+		
+		.achievement-icon {
+			font-size: 48px;
+			min-width: 48px;
+			text-align: center;
+		}
+		
+		.achievement-content {
+			flex: 1;
+		}
+		
+		.achievement-title {
+			font-size: 22px;
+			font-weight: 600;
+			margin-bottom: 4px;
+		}
+		
+		.achievement-subtitle {
+			font-size: 16px;
+			opacity: 0.85;
 		}
 		
 		.achievement:nth-child(1) { animation-delay: 0.1s; }
@@ -154,19 +258,19 @@ export function getMotivationalHtml(title: string, achievements: string[], outro
 	</div>
 	
 	<div class="container">
-		<h1 class="title">${title}</h1>
+		<h1 class="title">${data.intro}</h1>
 		
-		${achievements.length > 0 ? `
+		${data.hasAchievements ? `
 			<div class="achievements">
-				${achievements.map(achievement => `<div class="achievement">${achievement}</div>`).join('')}
+				${achievementCards.join('')}
 			</div>
 		` : `
 			<div class="empty-state">
-				No achievements tracked yet in this time period, but keep coding! Every line is progress. 🚀
+				No achievements tracked yet in ${data.timeDescription}, but keep coding! Every line is progress. 🚀
 			</div>
 		`}
 		
-		<div class="outro">${outro}</div>
+		<div class="outro">${data.outro}</div>
 	</div>
 </body>
 </html>`;

@@ -11,7 +11,7 @@ function log(message: string) {
 	outputChannel.appendLine(message);
 }
 
-function showMotivationalPanel(context: vscode.ExtensionContext, message: string) {
+function showMotivationalPanel(context: vscode.ExtensionContext, data: import('./statistics').MotivationalData) {
 	// Create and show a new webview panel
 	const panel = vscode.window.createWebviewPanel(
 		'motivationalMessage',
@@ -23,14 +23,8 @@ function showMotivationalPanel(context: vscode.ExtensionContext, message: string
 		}
 	);
 
-	// Parse the message to extract parts
-	const lines = message.split('\n').filter(line => line.trim());
-	const title = lines[0].replace(/\*\*/g, '');
-	const achievements = lines.slice(2, -2); // Skip title and outro
-	const outro = lines[lines.length - 1];
-
 	// Set the webview's HTML content
-	panel.webview.html = getMotivationalHtml(title, achievements, outro);
+	panel.webview.html = getMotivationalHtml(data);
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -43,21 +37,68 @@ export function activate(context: vscode.ExtensionContext) {
 	const cheerMeUpDisposable = vscode.commands.registerCommand('programmersarepeopletoo.cheermeup', async () => {
 		log(`🤗 Cheer Me Up command executed - spreading positivity!`);
 		
+		// Debug: Show summary of all tracked events
+		const summary = statsTracker.getSummary();
+		console.log('[CheerMeUp] Statistics summary:', JSON.stringify(summary, null, 2));
+		
 		// Default to 1 hour
 		const defaultDuration = 60 * 60 * 1000; // 1 hour
 		
-		// Generate motivational message based on statistics
-		const motivationalMessage = statsTracker.generateMotivationalMessage(defaultDuration);
+		// Generate motivational data based on statistics
+		const motivationalData = statsTracker.generateMotivationalData(defaultDuration);
 		
-		// Show full message in output channel
+		// Show summary in output channel
 		outputChannel.appendLine('\n' + '='.repeat(60));
-		outputChannel.appendLine(motivationalMessage);
+		outputChannel.appendLine(motivationalData.intro);
+		outputChannel.appendLine('');
+		if (motivationalData.achievements.diagnostics.total > 0) {
+			outputChannel.appendLine(`✨ Fixed ${motivationalData.achievements.diagnostics.total} diagnostic issues`);
+		}
+		if (motivationalData.achievements.tasks.total > 0) {
+			outputChannel.appendLine(`✅ Completed ${motivationalData.achievements.tasks.total} tasks`);
+		}
+		if (motivationalData.achievements.files.total > 0) {
+			outputChannel.appendLine(`📝 ${motivationalData.achievements.files.total} file operations`);
+		}
+		outputChannel.appendLine('');
+		outputChannel.appendLine(motivationalData.outro);
 		outputChannel.appendLine('='.repeat(60) + '\n');
 		
 		// Create and show webview panel
-		showMotivationalPanel(context, motivationalMessage);
+		showMotivationalPanel(context, motivationalData);
 	});
 	context.subscriptions.push(cheerMeUpDisposable);
+	
+	// Debug command to show all statistics
+	const showStatsDisposable = vscode.commands.registerCommand('programmersarepeopletoo.showstats', () => {
+		const summary = statsTracker.getSummary();
+		const allEvents = statsTracker.getAllEvents();
+		
+		outputChannel.appendLine('\n' + '='.repeat(60));
+		outputChannel.appendLine('📊 STATISTICS DEBUG');
+		outputChannel.appendLine('='.repeat(60));
+		outputChannel.appendLine(`Total events tracked: ${allEvents.length}`);
+		outputChannel.appendLine(`Session start: ${new Date(summary.sessionStartTime).toISOString()}`);
+		outputChannel.appendLine('\nEvents by type:');
+		for (const [type, stats] of Object.entries(summary.byType)) {
+			outputChannel.appendLine(`  ${type}: ${stats.total} total (${stats.resolved} resolved, ${stats.unresolved} unresolved)`);
+		}
+		outputChannel.appendLine('\nAll events:');
+		for (const event of allEvents.slice(0, 20)) { // Show first 20
+			outputChannel.appendLine(`  [${event.type}/${event.subtype}] ${event.description}`);
+			outputChannel.appendLine(`    Created: ${new Date(event.timestamp).toISOString()}`);
+			if (event.resolvedTimestamp) {
+				outputChannel.appendLine(`    Resolved: ${new Date(event.resolvedTimestamp).toISOString()}`);
+			}
+		}
+		if (allEvents.length > 20) {
+			outputChannel.appendLine(`  ... and ${allEvents.length - 20} more`);
+		}
+		outputChannel.appendLine('='.repeat(60) + '\n');
+		outputChannel.show();
+	});
+	context.subscriptions.push(showStatsDisposable);
+	
 	context.subscriptions.push(outputChannel);
 	setupDiagnosticMonitoring(context);
 	setupTaskMonitoring(context);

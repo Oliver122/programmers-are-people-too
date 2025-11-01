@@ -53,6 +53,47 @@ export interface StatisticsSummary {
 }
 
 /**
+ * Achievement level for motivational messages
+ */
+export type AchievementLevel = 'minimal' | 'low' | 'medium' | 'high' | 'epic';
+
+/**
+ * Structured motivational data for rendering
+ */
+export interface MotivationalData {
+	/** Achievement level determining message tone */
+	level: AchievementLevel;
+	/** Intro message */
+	intro: string;
+	/** Outro message */
+	outro: string;
+	/** Human-readable time description */
+	timeDescription: string;
+	/** Detailed achievement statistics */
+	achievements: {
+		diagnostics: {
+			total: number;
+			errors: number;
+			warnings: number;
+			hints: number;
+		};
+		tasks: {
+			successful: number;
+			recovered: number;
+			total: number;
+		};
+		files: {
+			created: number;
+			changed: number;
+			renamed: number;
+			total: number;
+		};
+	};
+	/** Whether any achievements were recorded */
+	hasAchievements: boolean;
+}
+
+/**
  * Global statistics tracker for the extension
  */
 export class StatisticsTracker {
@@ -83,6 +124,7 @@ export class StatisticsTracker {
 			existingEvent.occurrenceCount++;
 			existingEvent.timestamp = Date.now();
 			existingEvent.metadata = { ...existingEvent.metadata, ...metadata };
+			console.log(`[Stats] Updated event: ${type}/${subtype} - ${description.substring(0, 50)}`);
 		} else {
 			// New event
 			const newEvent: EventEntry = {
@@ -95,6 +137,7 @@ export class StatisticsTracker {
 				metadata: metadata || {}
 			};
 			this.events.set(id, newEvent);
+			console.log(`[Stats] New event tracked: ${type}/${subtype} - ${description.substring(0, 50)}`);
 		}
 
 		this.saveToStorage();
@@ -108,6 +151,7 @@ export class StatisticsTracker {
 		const event = this.events.get(eventId);
 		if (event && !event.resolvedTimestamp) {
 			event.resolvedTimestamp = Date.now();
+			console.log(`[Stats] Resolved event: ${event.type}/${event.subtype} - ${event.description.substring(0, 50)}`);
 			this.saveToStorage();
 			return true;
 		}
@@ -273,6 +317,13 @@ export class StatisticsTracker {
 	}
 
 	/**
+	 * Get all events (for debugging)
+	 */
+	getAllEvents(): EventEntry[] {
+		return Array.from(this.events.values());
+	}
+
+	/**
 	 * Clear all statistics
 	 */
 	clear(): void {
@@ -306,79 +357,105 @@ export class StatisticsTracker {
 	/**
 	 * Generate a motivational message based on recent achievements
 	 * @param durationMs Duration in milliseconds to look back (default: 1 hour)
-	 * @returns Motivational message highlighting accomplishments
+	 * @returns Motivational data structure with all achievement details
 	 */
-	generateMotivationalMessage(durationMs: number = 60 * 60 * 1000): string {
+	generateMotivationalData(durationMs: number = 60 * 60 * 1000): MotivationalData {
 		const recentEvents = this.getEventsInDuration(durationMs);
 		const cutoffTime = Date.now() - durationMs;
 
-		// Count achievements
+		// Debug logging
+		console.log(`[Stats] Total events in storage: ${this.events.size}`);
+		console.log(`[Stats] Recent events (last ${durationMs}ms): ${recentEvents.length}`);
+		console.log(`[Stats] Cutoff time: ${new Date(cutoffTime).toISOString()}`);
+		console.log(`[Stats] Current time: ${new Date().toISOString()}`);
+
+		// Count achievements - only count events that occurred OR were resolved within the time period
 		const fixedDiagnostics = recentEvents.filter(
 			e => e.type === 'diagnostic' && e.resolvedTimestamp && e.resolvedTimestamp >= cutoffTime
 		);
 		const fixedErrors = fixedDiagnostics.filter(e => e.subtype === 'error').length;
 		const fixedWarnings = fixedDiagnostics.filter(e => e.subtype === 'warning').length;
+		const fixedHints = fixedDiagnostics.filter(e => e.subtype === 'hint').length;
 		const totalFixedIssues = fixedDiagnostics.length;
 
+		console.log(`[Stats] Fixed diagnostics: ${totalFixedIssues} (errors: ${fixedErrors}, warnings: ${fixedWarnings}, hints: ${fixedHints})`);
+
+		// For successful tasks, we want tasks that completed (timestamp) within the period
 		const successfulTasks = recentEvents.filter(
 			e => e.type === 'task' && e.subtype === 'success' && e.timestamp >= cutoffTime
 		);
+		// For recovered tasks, we want failed tasks that were resolved within the period
 		const recoveredTasks = recentEvents.filter(
 			e => e.type === 'task' && e.subtype === 'failure' && e.resolvedTimestamp && e.resolvedTimestamp >= cutoffTime
 		);
 
+		console.log(`[Stats] Successful tasks: ${successfulTasks.length}, Recovered tasks: ${recoveredTasks.length}`);
+
+		// For files, we want file events that occurred within the period
 		const filesCreated = recentEvents.filter(
 			e => e.type === 'file' && e.subtype === 'created' && e.timestamp >= cutoffTime
 		).length;
 		const filesChanged = recentEvents.filter(
 			e => e.type === 'file' && e.subtype === 'changed' && e.timestamp >= cutoffTime
 		).length;
+		const filesRenamed = recentEvents.filter(
+			e => e.type === 'file' && e.subtype === 'renamed' && e.timestamp >= cutoffTime
+		).length;
 
-		// Calculate time description
-		const timeDescription = this.getTimeDescription(durationMs);
+		console.log(`[Stats] Files created: ${filesCreated}, Files changed: ${filesChanged}, Files renamed: ${filesRenamed}`);
 
-		// Build motivational message
-		const achievements: string[] = [];
+		// Calculate achievement level
+		const achievementCount = (totalFixedIssues > 0 ? 1 : 0) + 
+			(successfulTasks.length + recoveredTasks.length > 0 ? 1 : 0) + 
+			(filesCreated > 0 ? 1 : 0) + 
+			(filesChanged > 0 ? 1 : 0);
 
-		if (totalFixedIssues > 0) {
-			const parts: string[] = [];
-			if (fixedErrors > 0) {
-				parts.push(`${fixedErrors} error${fixedErrors > 1 ? 's' : ''}`);
-			}
-			if (fixedWarnings > 0) {
-				parts.push(`${fixedWarnings} warning${fixedWarnings > 1 ? 's' : ''}`);
-			}
-			
-			if (parts.length > 0) {
-				achievements.push(`✨ Fixed ${parts.join(' and ')}`);
-			} else {
-				achievements.push(`✨ Fixed ${totalFixedIssues} issue${totalFixedIssues > 1 ? 's' : ''}`);
-			}
-		}
-
-		if (successfulTasks.length > 0 || recoveredTasks.length > 0) {
-			const totalTasks = successfulTasks.length + recoveredTasks.length;
-			achievements.push(`✅ Completed ${totalTasks} task${totalTasks > 1 ? 's' : ''} successfully`);
-		}
-
-		if (filesCreated > 0) {
-			achievements.push(`📝 Created ${filesCreated} new file${filesCreated > 1 ? 's' : ''}`);
-		}
-
-		if (filesChanged > 0) {
-			achievements.push(`💾 Modified ${filesChanged} file${filesChanged > 1 ? 's' : ''}`);
-		}
-
-		// Generate message based on achievements
-		if (achievements.length === 0) {
-			return `🌟 Keep going! Every line of code is progress, even if there are no visible wins yet in ${timeDescription}.`;
-		}
-
-		const intro = this.getMotivationalIntro(totalFixedIssues, achievements.length);
-		const achievementList = achievements.join('\n');
+		const level = this.getAchievementLevel(totalFixedIssues, achievementCount);
+		const intro = this.getMotivationalIntro(totalFixedIssues, achievementCount);
 		const outro = this.getMotivationalOutro(totalFixedIssues);
 
-		return `${intro}\n\n${achievementList}\n\n${outro}`;
+		return {
+			level,
+			intro,
+			outro,
+			timeDescription: this.getTimeDescription(durationMs),
+			achievements: {
+				diagnostics: {
+					total: totalFixedIssues,
+					errors: fixedErrors,
+					warnings: fixedWarnings,
+					hints: fixedHints
+				},
+				tasks: {
+					successful: successfulTasks.length,
+					recovered: recoveredTasks.length,
+					total: successfulTasks.length + recoveredTasks.length
+				},
+				files: {
+					created: filesCreated,
+					changed: filesChanged,
+					renamed: filesRenamed,
+					total: filesCreated + filesChanged + filesRenamed
+				}
+			},
+			hasAchievements: achievementCount > 0
+		};
+	}
+
+	/**
+	 * Get achievement level based on performance
+	 */
+	private getAchievementLevel(fixedIssues: number, achievementCount: number): AchievementLevel {
+		if (fixedIssues >= 10) {
+			return 'epic';
+		} else if (fixedIssues >= 5) {
+			return 'high';
+		} else if (achievementCount >= 3) {
+			return 'medium';
+		} else if (achievementCount >= 1) {
+			return 'low';
+		}
+		return 'minimal';
 	}
 
 	/**

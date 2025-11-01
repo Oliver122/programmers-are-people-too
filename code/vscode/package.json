@@ -64,7 +64,12 @@
     "commands": [
       {
         "command": "programmersarepeopletoo.cheermeup",
-        "title": "Run: Cheer Me Up",
+        "title": "Cheer Me Up",
+        "category": "Programmers Are People Too"
+      },
+      {
+        "command": "programmersarepeopletoo.showstats",
+        "title": "Show Statistics (Debug)",
         "category": "Programmers Are People Too"
       }
     ],
