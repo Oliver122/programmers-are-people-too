@@ -41,11 +41,15 @@ export function activate(context: vscode.ExtensionContext) {
 		const summary = statsTracker.getSummary();
 		console.log('[CheerMeUp] Statistics summary:', JSON.stringify(summary, null, 2));
 		
-		// Default to 1 hour
-		const defaultDuration = 60 * 60 * 1000; // 1 hour
+		// Get configured duration from settings (in minutes, convert to milliseconds)
+		const config = vscode.workspace.getConfiguration('ProgrammersArePeopleToo');
+		const durationMinutes = config.get<number>('cheerMeUpDurationMinutes', 60);
+		const durationMs = durationMinutes * 60 * 1000;
+		
+		console.log(`[CheerMeUp] Using duration: ${durationMinutes} minutes (${durationMs}ms)`);
 		
 		// Generate motivational data based on statistics
-		const motivationalData = statsTracker.generateMotivationalData(defaultDuration);
+		const motivationalData = statsTracker.generateMotivationalData(durationMs);
 		
 		// Show summary in output channel
 		outputChannel.appendLine('\n' + '='.repeat(60));
