@@ -1,4 +1,4 @@
-![Programmers Are People Too Logo](banner.svg)
+![Programmers Are People Too Logo](banner.png)
 
 
 
@@ -11,6 +11,8 @@ Development tools are great at telling us what's wrong - red underlines for erro
 This extension changes that by introducing **positive reinforcement** into your coding workflow. Because programmers are people too, and people deserve to feel good about their work! 🎉
 
 ## Features ✨
+
+![highlight fixed code](highlight_fixed_code.gif)
 
 ### 🎊 Instant Celebrations
 - **Real-time feedback** when you fix errors or warnings
