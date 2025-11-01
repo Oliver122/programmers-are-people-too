@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { animateFix } from './animations';
 
 const outputChannel = vscode.window.createOutputChannel('Programmers Are People Too');
 
@@ -59,35 +60,12 @@ function subscribeToEvents(onFixedRanges?: FixedRangesCallback): vscode.Disposab
 	return diagSub;
 }
 
-function animate(context: vscode.ExtensionContext, uri: vscode.Uri, ranges: vscode.Range[], durationMs = 900) {
-	const celebrateDeco = vscode.window.createTextEditorDecorationType({
-		textDecoration: 'underline wavy green',
-		overviewRulerColor: 'green',
-		overviewRulerLane: vscode.OverviewRulerLane.Right,
-	});
-	context.subscriptions.push(celebrateDeco);
-
-	const editor = vscode.window.visibleTextEditors.find(e => e.document.uri.toString() === uri.toString());
-    if (!editor || ranges.length === 0) {
-		return;
-	}
-	
-	// Extend ranges to cover the complete word
-	const extendedRanges = ranges.map(r => {
-		const wordRange = editor.document.getWordRangeAtPosition(r.start);
-		return wordRange || r;
-	});
-	
-    editor.setDecorations(celebrateDeco, extendedRanges);
-    setTimeout(() => editor.setDecorations(celebrateDeco, []), durationMs);
-}
-
 function setupDiagnosticMonitoring(context: vscode.ExtensionContext) {
 	const subscription = subscribeToEvents((uri, fixedRanges, fixedDiagnostics) => {
 		const fileName = uri.fsPath.split(/[/\\]/).pop() || uri.fsPath;
 		console.log(`✨ Fixed ${fixedRanges.length} issues in ${fileName}`);
 		outputChannel.appendLine(`✨ Fixed ${fixedRanges.length} issues in ${fileName}`);
-		animate(context, uri, fixedRanges);
+		animateFix(context, uri, fixedRanges);
 	});
 	context.subscriptions.push(subscription);
 }
