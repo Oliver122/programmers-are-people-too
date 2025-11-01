@@ -74,8 +74,7 @@ Desktop.ini
 
 # IDE files
 .idea/
-.vscode/settings.json
-.vscode/launch.json
+
 
 # Build artifacts
 build/
