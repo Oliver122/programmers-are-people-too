@@ -1,21 +1,71 @@
 {
   "name": "programmersarepeopletoo",
-  "displayName": "ProgrammersArePeopleToo",
-  "description": "",
+  "displayName": "Programmers Are People Too",
+  "description": "Celebrate your coding wins! Get positive reinforcement when you fix errors and improve code quality.",
   "version": "0.0.1",
+  "publisher": "dan-42",
+  "author": {
+    "name": "Programmers Are People Too Team"
+  },
+  "contributors": [
+    {
+      "name": "Oliver",
+      "url": "https://github.com/Oliver122"
+    },
+    {
+      "name": "Dan",
+      "url": "https://github.com/dan-42"
+    },
+    {
+      "name": "Andrey Dodonov",
+      "url": "https://github.com/AndreyDodonov-EH"
+    },
+    {
+      "name": "Kleeblitz",
+      "url": "https://github.com/Kleeblitz"
+    }
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/Oliver122/programmers-are-people-too",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Oliver122/programmers-are-people-too.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Oliver122/programmers-are-people-too/issues"
+  },
   "engines": {
     "vscode": "^1.103.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Education",
+    "Visualization"
   ],
+  "keywords": [
+    "positive reinforcement",
+    "motivation",
+    "celebration",
+    "diagnostics",
+    "developer experience",
+    "feedback",
+    "programming",
+    "wellness",
+    "productivity"
+  ],
+  "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#4CAF50",
+    "theme": "light"
+  },
   "activationEvents": ["onStartupFinished"],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "programmersarepeopletoo.helloWorld",
-        "title": "Hello World"
+        "title": "Programmers Are People Too: Hello World",
+        "category": "Programmers Are People Too"
       }
     ],
     "configuration":{
@@ -41,7 +91,8 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "npm run copy-assets && npm run compile",
+    "copy-assets": "node scripts/copy-assets.js",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
