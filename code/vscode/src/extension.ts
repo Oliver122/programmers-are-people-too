@@ -10,10 +10,27 @@ function log(message: string) {
 
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "programmersarepeopletoo" is now active!');
-	const disposable = vscode.commands.registerCommand('programmersarepeopletoo.helloWorld', () => {
-		vscode.window.showInformationMessage('Hello World from ProgrammersArePeopleToo! Apple');
+
+	const cheerMeUpDisposable = vscode.commands.registerCommand('programmersarepeopletoo.cheermeup', () => {
+		const encouragingMessages = [
+			"🎉 You're doing amazing work! Keep coding!",
+			"✨ Every bug you fix makes you stronger!",
+			"🚀 Your code is making a difference!",
+			"💪 You've got this! One line at a time!",
+			"🌟 Great developers are made through persistence!",
+			"🔥 You're crushing those challenges!",
+			"💎 Your dedication to coding is inspiring!",
+			"🎯 Focus and determination - you have both!",
+			"🌈 Every error is just a step closer to success!",
+			"⚡ Your problem-solving skills are fantastic!"
+		];
+
+		const randomMessage = encouragingMessages[Math.floor(Math.random() * encouragingMessages.length)];
+		
+		log(`🤗 Cheer Me Up command executed - spreading positivity!`);
+		vscode.window.showInformationMessage(randomMessage);
 	});
-	context.subscriptions.push(disposable);
+	context.subscriptions.push(cheerMeUpDisposable);
 	context.subscriptions.push(outputChannel);
 	setupDiagnosticMonitoring(context);
 	setupTaskMonitoring(context);
