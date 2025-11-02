@@ -1,25 +1,28 @@
 import * as vscode from 'vscode';
+import * as http from 'http';
+import { WebSocketServer } from 'ws';
 import { animateFix } from './animations';
 import { StatisticsTracker } from './statistics';
 import { getMotivationalHtml } from './motivationalPanel';
 
 const outputChannel = vscode.window.createOutputChannel('Programmers Are People Too');
 let statsTracker: StatisticsTracker;
-const SAVE_CELEBRATION_PREFIX = 'PAP::fastReassure::';
+let wss: WebSocketServer | undefined;
+let server: http.Server | undefined;
 
 function log(message: string) {
-	console.log(message);
-	outputChannel.appendLine(message);
+    console.log(message);
+    outputChannel.appendLine(message);
 }
-
-function triggerSaveCelebration() {
-	const config = vscode.workspace.getConfiguration('ProgrammersArePeopleToo');
-	if (!config.get<boolean>('animations', true)) {
-		return;
-	}
-
-	const triggerToken = Date.now().toString(36);
-	log(`${SAVE_CELEBRATION_PREFIX}${triggerToken}`);
+function broadcast(msg: unknown) {
+    try {
+        const s = JSON.stringify(msg);
+        wss?.clients.forEach((c: any) => {
+            if (c.readyState === 1) { c.send(s); }
+        });
+    } catch (e) {
+        console.error('Broadcast error', e);
+    }
 }
 
 function showMotivationalPanel(context: vscode.ExtensionContext, data: import('./statistics').MotivationalData) {
@@ -39,11 +42,28 @@ function showMotivationalPanel(context: vscode.ExtensionContext, data: import('.
 }
 
 export function activate(context: vscode.ExtensionContext) {
-	console.log('Congratulations, your extension "programmersarepeopletoo" is now active!');
+    console.log('Congratulations, your extension "programmersarepeopletoo" is now active!');
 
-	// Initialize statistics tracker
-	statsTracker = new StatisticsTracker(context);
-	log('📊 Statistics tracker initialized');
+    // Initialize statistics tracker
+    statsTracker = new StatisticsTracker(context);
+    log('📊 Statistics tracker initialized');
+
+    // Start local WebSocket server for UI hooks
+    try {
+        const PORT = 12718; // fixed local port for UI comms
+        server = http.createServer();
+        wss = new WebSocketServer({ server });
+        server.listen(PORT, '127.0.0.1');
+        log(`🔌 WS UI bridge listening on ws://127.0.0.1:${PORT}`);
+        context.subscriptions.push({
+            dispose: () => {
+                try { wss?.close(); } catch {}
+                try { server?.close(); } catch {}
+            }
+        });
+    } catch (e) {
+        console.error('Failed to start WS server', e);
+    }
 
 	const cheerMeUpDisposable = vscode.commands.registerCommand('programmersarepeopletoo.cheermeup', async () => {
 		log(`🤗 Cheer Me Up command executed - spreading positivity!`);
@@ -240,15 +260,16 @@ function setupTaskMonitoring(context: vscode.ExtensionContext) {
 }
 
 function setupSaveMonitoring(context: vscode.ExtensionContext) {
-	const subscription = vscode.workspace.onDidSaveTextDocument((document) => {
-		const fileName = document.uri.fsPath.split(/[/\\]/).pop() || document.uri.fsPath;
-		log(`💾 Saved ${fileName}`);
-		
-		// Track file change
-		statsTracker.trackFileChanged(document.uri);
-		triggerSaveCelebration();
-	});
-	context.subscriptions.push(subscription);
+    const subscription = vscode.workspace.onDidSaveTextDocument((document) => {
+        const fileName = document.uri.fsPath.split(/[/\\]/).pop() || document.uri.fsPath;
+        log(`💾 Saved ${fileName}`);
+        
+        // Track file change
+        statsTracker.trackFileChanged(document.uri);
+        // Tell UI to reassure
+        broadcast({ type: 'reassure', target: 'editor' });
+    });
+    context.subscriptions.push(subscription);
 }
 
 function setupFileCreationMonitoring(context: vscode.ExtensionContext) {
