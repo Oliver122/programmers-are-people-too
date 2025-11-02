@@ -27,14 +27,21 @@ We move the programming experience from 'in the dock in a courtroom' to be 'on s
 
 Programming becomes rocking the crowds ツ
 
-## Conceptual Overview
+## Overview
+
+### Core Principles
+1. **Celebrate achievements**, don't just highlight problems
+2. **Feedback** delightful, not intrusive. Visuell,  
+3. **Multi editor and language support** - positive vibes for everyone
+4. **Real-time** - celebrate the moment it happens
+
+### Architectural Overview
 <!--TODO:check and confirm-->
-1. Events from to language server are listened
-2. The events are mapped to a reward level from -10 to 10. 
+1. Events from the language server are listened
+2. Events are mapped to a reward level from -10 to 10. 
 3. The reward level of an event and possibly the event position are used to generate user feedback.
 
 Events --> Reward Level, Event Position --> Feedback
-
 
 
 ### Positive Feedback Types
@@ -57,14 +64,14 @@ We build tools to provide positive feedback during programming.
 
 ### VS Code Extension (`code/vscode/`)
 - Hooks into the Language Server Protocol (LSP) for real-time feedback
-- Monitors diagnostic changes and celebrates improvements
+- Monitors diagnostic changes
 - Integrates with build tasks, formatters, and linters
-- Beautiful visual feedback for coding achievements
+- Beautiful visual feedback for coding achievements (e.g. elimination of errors)
 
 ### Neovim Plugin (`code/nvim/`) *[Planned]*
-- Cross-platform positive reinforcement
-- Vim-native celebration mechanics
 - Shared core logic with VS Code extension
+- Vim-native celebration mechanics
+
 
 ### Future Possibilities 🚀
 - **AI-powered code appreciation** using MCP servers
@@ -75,7 +82,8 @@ We build tools to provide positive feedback during programming.
 ## Quick Start 🎬
 
 ### Development Setup
-```bash
+```
+bash
 # Clone and navigate
 git clone https://github.com/Oliver122/programmers-are-people-too.git
 cd programmers-are-people-too
@@ -102,11 +110,7 @@ npm run watch  # Start TypeScript compiler in watch mode
 
 We believe **developers deserve positive feedback**. Join us in changing how development tools make us feel.
 
-### Core Principles
-1. **Celebrate achievements**, don't just highlight problems
-2. **Visual feedback** should feel delightful, not intrusive  
-3. **Multi-editor support** - positive vibes for everyone
-4. **Real-time responsiveness** - celebrate the moment it happens
+
 
 ## License 📄
 
