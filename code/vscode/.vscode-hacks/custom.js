@@ -5,6 +5,101 @@
   // 1) Status bar gentle pulse
   const status = qs('.monaco-workbench .part.statusbar');
   if (status) status.classList.add('pap-status-pulse');
+  const OUTPUT_TRIGGER_PREFIX = 'PAP::fastReassure::';
+  let lastSeenOutputToken = '';
+
+  function debugLog(...args) {
+    try {
+      console.log('[PAP demo]', ...args);
+    } catch (_) {
+      // eslint-disable-line no-empty
+    }
+  }
+
+  debugLog('custom.js bootstrap');
+
+  function extractTokenFromText(text) {
+    if (!text || typeof text !== 'string') {
+      return '';
+    }
+    const match = text.match(/PAP::fastReassure::([a-z0-9]+)/i);
+    return match ? match[0] : '';
+  }
+
+  function handleToken(token) {
+    if (!token || token === lastSeenOutputToken) {
+      return;
+    }
+    lastSeenOutputToken = token;
+    debugLog('Triggering reassureFull for token', token);
+    reassureFull();
+  }
+
+  function scanNodeForToken(node) {
+    if (!node) {
+      return;
+    }
+    if (node.nodeType === Node.TEXT_NODE) {
+      const token = extractTokenFromText(node.textContent);
+      if (token) {
+        debugLog('Detected cue in text node', token);
+        handleToken(token);
+      }
+      return;
+    }
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const el = node;
+      const possibleAttributes = ['title', 'aria-label', 'data-tooltip'];
+      for (const attr of possibleAttributes) {
+        const value = el.getAttribute && el.getAttribute(attr);
+        const token = extractTokenFromText(value);
+        if (token) {
+          debugLog('Detected cue in attribute', attr, token);
+          handleToken(token);
+          return;
+        }
+      }
+      const token = extractTokenFromText(el.textContent);
+      if (token) {
+        debugLog('Detected cue in element text', token);
+        handleToken(token);
+      }
+    }
+  }
+
+  function setupOutputCueListener() {
+    debugLog('Setting up output cue listener');
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.type === 'characterData') {
+          scanNodeForToken(mutation.target);
+        }
+        if (mutation.addedNodes) {
+          for (const node of mutation.addedNodes) {
+            scanNodeForToken(node);
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              for (const textNode of node.querySelectorAll('*')) {
+                scanNodeForToken(textNode);
+              }
+            }
+          }
+        }
+      }
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+
+    // Immediate check on load
+    scanNodeForToken(document.body);
+
+    debugLog('Output cue listener ready');
+  }
+
+  setupOutputCueListener();
 
   // 2) Sweep (kept)
   function sweep() {
@@ -225,8 +320,8 @@
     if (e.ctrlKey && e.altKey && !e.shiftKey && e.code === 'KeyE') {
       reassureFull();
     }
-    // Morph Ripple: Ctrl+Alt+M
-    if (e.ctrlKey && e.altKey && !e.shiftKey && e.code === 'KeyM') {
+    // Morph Ripple: Ctrl+Alt+Q
+    if (e.ctrlKey && e.altKey && !e.shiftKey && e.code === 'KeyQ') {
       morphRipple();
     }
   });
