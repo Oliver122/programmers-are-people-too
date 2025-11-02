@@ -8,14 +8,8 @@ M.defaults = {
   -- Plugin enabled/disabled
   enabled = true,
   
-  -- Error display style: "lsp", "nice", or "none"
-  -- "lsp": Show raw LSP error messages
-  -- "nice": Show friendly messages like "(look here m8)"
-  -- "none": Don't show any error display
-  error_display = "nice",
-  
   -- Solved celebration style: "basic", "extended", or "none"
-  -- "basic": Just "(yay good job!)"
+  -- "basic": Just " (good job)"
   -- "extended": Include original error message + celebration
   -- "none": Don't show any fix notices
   solved_style = "basic",
@@ -27,6 +21,11 @@ M.defaults = {
   -- "none": Don't show any notifications
   -- Note: For best results, install nvim-notify: https://github.com/rcarriga/nvim-notify
   solved_notification = "both",
+  
+  -- Show notification when file is saved
+  -- true: Show "File saved!" notification
+  -- false: Don't show save notification
+  notify_on_save = true,
 }
 
 -- Current configuration (merged with user opts)
