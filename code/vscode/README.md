@@ -130,6 +130,7 @@ Created by the BaselHack 2025 team:
 - **[Dan](https://github.com/dan-42)**
 - **[Andrey Dodonov](https://github.com/AndreyDodonov-EH)**
 - **[Kleeblitz](https://github.com/Kleeblitz)**
+- **[Dedunden](https://github.com/dedunden)**
 
 ## Release Notes 📝
 
