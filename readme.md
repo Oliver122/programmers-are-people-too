@@ -29,18 +29,21 @@ Programming becomes rocking the crowds ツ
 
 ## Overview
 
-### Core Principles
+### Principles
 1. **Celebrate achievements**, don't just highlight problems
-2. **Feedback** delightful, not intrusive.  
+2. **Feedback** delightful, not intrusive
 3. **Real-time** - celebrate the moment it happens
 4. **Multi editor and language support** - positive vibes for everyone
 
 
-### Architectural Overview
+### Architecture
 <!--TODO:check and confirm-->
-1. Events from the language server are listened
-2. Events are mapped to a reward level from -10 to 10. 
-3. The reward level of an event and possibly the event position are used to generate user feedback.
+> Currently in work, changes are likely.
+
+1. Events from the language server are listened. 
+2. The events are mapped 
+    * directly to feedback
+    * the events are mapped to a reward level which is then mapped feedback
 
 Events --> Reward Level, Event Position --> Feedback
 
