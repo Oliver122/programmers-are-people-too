@@ -74,9 +74,11 @@ We build tools to provide positive feedback during programming.
 - Integrates with build tasks, formatters, and linters
 - Beautiful visual feedback for coding achievements (e.g. elimination of errors)
 
-### Neovim Plugin (`code/nvim/`) *[Planned]*
-- Shared core logic with VS Code extension
-- Vim-native celebration mechanics
+### Neovim Plugin (`code/nvim/`) ✅ **Available Now!**
+- Terminal-native implementation
+- LSP integration for error tracking
+- Beautiful notifications via nvim-notify
+- Shared positive feedback philosophy with VS Code extension
 
 
 ### Future Possibilities 🚀
@@ -106,7 +108,7 @@ npm run watch  # Start TypeScript compiler in watch mode
 ```
 ├── code/
 │   ├── vscode/          # VS Code extension source
-│   └── nvim/            # Neovim plugin (planned)
+│   └── nvim/            # Neovim plugin ✅ Available
 ├── presentation/        # BaselHack 2025 pitch deck (reveal.js)
 ├── documentation/       # Project docs
 ├── assets/             # Media and presentations

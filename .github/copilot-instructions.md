@@ -7,8 +7,9 @@
 ## Project Architecture
 
 This BaselHack 2025 hackathon project implements editor extensions for positive developer feedback:
-- `code/vscode/` - VS Code extension for positive reinforcement
-- `code/nvim/` - Neovim extension/plugin (planned)
+- `code/vscode/` - VS Code extension for positive reinforcement (v0.0.7 published)
+- `code/nvim/` - Neovim plugin for terminal-native positive feedback (v1.0.0 available)
+- `presentation/` - BaselHack 2025 pitch deck using reveal.js
 - `documentation/` - Project documentation 
 - `assets/` - Media and presentation files
 - Root-level `tsconfig.json` compiles from `code/vscode/src` to `out/`
@@ -67,9 +68,10 @@ The extension (`code/vscode/`) follows standard VS Code extension patterns:
 
 - VS Code extension manifest: `code/vscode/package.json`
 - VS Code main source: `code/vscode/src/extension.ts`
-- Neovim plugin: `code/nvim/` (to be implemented)
+- Neovim plugin: `code/nvim/programmers-are-people-too/` (Lua implementation available)
 - VS Code config: `.vscode/` (launch.json, tasks.json, settings.json)
 - Build output: `code/vscode/out/` (git-ignored, search-excluded)
+- Presentation: `presentation/index.html` and `presentation/standalone.html`
 
 ## Development Notes
 
