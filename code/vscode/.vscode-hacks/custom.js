@@ -1,4 +1,3 @@
-// ===== Programmers-Are-People demo JS (lens edition) =====
 (function () {
   const qs = (sel) => document.querySelector(sel);
 
@@ -39,65 +38,11 @@
   }
   connect();
 
-  // 2) Sweep (kept)
   function sweep() {
     const d = document.createElement('div');
     d.className = 'pap-sweep';
     document.body.appendChild(d);
     d.addEventListener('animationend', () => d.remove(), { once: true });
-  }
-
-  // 3) Lens / Spotlight
-  let lensEl = null;
-
-  function ensureLens() {
-    if (!lensEl) {
-      lensEl = document.createElement('div');
-      lensEl.className = 'pap-lens';
-      document.body.appendChild(lensEl);
-      // keep it aligned when window resizes
-      window.addEventListener('resize', () => {
-        if (currentTarget) moveLensTo(currentTarget, currentRadius);
-      });
-    }
-    return lensEl;
-  }
-
-  // Move the lens to an element (center it; radius fits the element)
-  let currentTarget = null;
-  let currentRadius = 160;
-
-  function moveLensTo(el, radiusPx) {
-    if (!el) return;
-    const lens = ensureLens();
-    const r = el.getBoundingClientRect();
-    const cx = r.left + r.width / 2;
-    const cy = r.top + r.height / 2;
-    const radius = radiusPx ?? Math.max(60, Math.min(260, Math.hypot(r.width, r.height) / 3));
-    lens.style.setProperty('--cx', `${cx}px`);
-    lens.style.setProperty('--cy', `${cy}px`);
-    lens.style.setProperty('--r', `${radius}px`);
-    currentTarget = el;
-    currentRadius = radius;
-  }
-
-  function moveLensToViewportCenter(radiusPx = 180) {
-    const lens = ensureLens();
-    const cx = window.innerWidth / 2;
-    const cy = window.innerHeight / 2;
-    lens.style.setProperty('--cx', `${cx}px`);
-    lens.style.setProperty('--cy', `${cy}px`);
-    lens.style.setProperty('--r', `${radiusPx}px`);
-    currentTarget = null;
-    currentRadius = radiusPx;
-  }
-
-  function removeLens() {
-    if (lensEl) {
-      lensEl.remove();
-      lensEl = null;
-      currentTarget = null;
-    }
   }
 
   // Convenience selectors
@@ -110,43 +55,10 @@
            qs('.part.panel');
   }
 
-  // 4) Hotkeys
   document.addEventListener('keydown', (e) => {
     // Sweep: Ctrl+Shift+Alt+P
     if (e.ctrlKey && e.shiftKey && e.altKey && e.code === 'KeyP') {
       sweep();
-    }
-    // Lens cycle: Ctrl+Shift+Alt+L
-    if (e.ctrlKey && e.shiftKey && e.altKey && e.code === 'KeyL') {
-      const el = document.activeElement;
-
-      // Cycle: viewport center → status bar → terminal → viewport center
-      const state = (ensureLens().dataset.state || 'center');
-      if (state === 'center') {
-        const sb = statusBarEl();
-        if (sb) { moveLensTo(sb, 140); ensureLens().dataset.state = 'status'; }
-        else { moveLensToViewportCenter(); ensureLens().dataset.state = 'center'; }
-      } else if (state === 'status') {
-        const term = terminalEl();
-        if (term) { moveLensTo(term, 180); ensureLens().dataset.state = 'terminal'; }
-        else { moveLensToViewportCenter(); ensureLens().dataset.state = 'center'; }
-      } else {
-        moveLensToViewportCenter();
-        ensureLens().dataset.state = 'center';
-      }
-    }
-    // Remove lens: Ctrl+Shift+Alt+K
-    if (e.ctrlKey && e.shiftKey && e.altKey && e.code === 'KeyK') {
-      removeLens();
-    }
-    // Resize lens radius with +/- while lens visible
-    if (lensEl && (e.key === '+' || e.key === '=')) {
-      const newR = Math.min(360, currentRadius + 16);
-      (currentTarget ? moveLensTo(currentTarget, newR) : moveLensToViewportCenter(newR));
-    }
-    if (lensEl && (e.key === '-' || e.key === '_')) {
-      const newR = Math.max(60, currentRadius - 16);
-      (currentTarget ? moveLensTo(currentTarget, newR) : moveLensToViewportCenter(newR));
     }
   });
 
@@ -266,10 +178,6 @@
 
   window.PAP = Object.assign(window.PAP || {}, {
     sweep,
-    lensCenter: (r) => moveLensToViewportCenter(r),
-    lensToStatus: (r) => moveLensTo(statusBarEl(), r),
-    lensToTerminal: (r) => moveLensTo(terminalEl(), r),
-    lensOff: removeLens,
     reassureFull,
     morphRipple
   });
