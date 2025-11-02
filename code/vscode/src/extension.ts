@@ -27,6 +27,117 @@ export function activate(context: vscode.ExtensionContext) {
       }
     }
   }); */
+  //animation(context);
+  test(context);
+}
+
+function test(context: vscode.ExtensionContext){
+ let panel: vscode.WebviewPanel | undefined;
+
+    vscode.workspace.onDidChangeTextDocument((event) => {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            return;
+        }
+
+        // Erstelle das Webview-Panel, falls es noch nicht existiert
+        if (!panel) {
+            panel = vscode.window.createWebviewPanel(
+                'powerMode',
+                'Power Mode',
+                vscode.ViewColumn.Beside,
+                {
+                    enableScripts: true,
+                    localResourceRoots: [vscode.Uri.file(context.extensionPath)]
+                }
+            );
+
+            // HTML-Inhalt für das Webview-Panel
+            panel.webview.html = getWebviewContent(context);
+        }
+
+        // Sende die Cursorposition an das Webview
+        const position = editor.selection.active;
+        const cursorPosition = editor.document.offsetAt(position);
+        const line = editor.document.lineAt(position.line);
+        const charPosition = position.character;
+
+        // Berechne die Pixelposition des Cursors
+        const cursorPixelPosition = editor.document.lineAt(position.line).range.end;
+
+        panel.webview.postMessage({
+            command: 'animate',
+            line: position.line,
+            charPosition: position.character
+        });
+    });
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('extension.stopPowerMode', () => {
+            if (panel) {
+                panel.dispose();
+                panel = undefined;
+            }
+        })
+    );
+}
+
+function getWebviewContent(context: vscode.ExtensionContext): string {
+    const gifPath = vscode.Uri.file(context.asAbsolutePath('media/sparkle.gif')).with({ scheme: 'vscode-resource' });
+
+    return `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <style>
+                body {
+                    margin: 0;
+                    overflow: hidden;
+                }
+                canvas {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                }
+            </style>
+        </head>`;
+	}
+
+function animation(context: vscode.ExtensionContext){
+	
+	const editor = vscode.window.activeTextEditor;
+  	if (!editor) return;
+
+	if(editor){
+		const position = editor.selection.active;
+		const line = editor.document.lineAt(position.line);
+		const range = new vscode.Range(line.range.end, line.range.end);
+
+		const decorationType = vscode.window.createTextEditorDecorationType({
+		  after: {
+			contentIconPath: vscode.Uri.file(
+				context.asAbsolutePath('media/sparkle.gif')),
+				width: '1em',
+				height: '1em',
+				margin : '0 0 0 5px',
+		  }
+		});
+	
+		//const position = new vscode.Position(lineNumber,charIndex);
+		//const position = editor.selection.active;
+		//const range = new vscode.Range(endPosition, endPosition);
+		editor.setDecorations(decorationType, [ range ]);
+	
+		// Optional: nach kurzer Zeit wieder entfernen
+		setTimeout(() => {
+		  editor.setDecorations(decorationType, []);
+		}, 15000);
+	  
+
+	}
+
 }
 
 type DiagKey = string; // unique per diagnostic instance
