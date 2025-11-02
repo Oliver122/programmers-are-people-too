@@ -2,9 +2,9 @@
 
 ![Programmers Are People Too Logo](assets/ProgrammersArepeopleToo.png)
 
-*Improving the programming experience by giving Positive feedback (Applaus on successes) in a addition to the prevalent negative Feedback (Error Highlighting).* 
+*Improving the programming experience by giving Positive feedback (Applause on successes) in a addition to the prevalent negative Feedback (Error Highlighting).* 
 
-> Like good teachers who use green pens to highlight excellent work alongside red pens for corrections, we want development tools that celebrate achievements, not just point out problems.
+> Like good teachers who use green pens to highlight excellent work alongside red pens for corrections, we want development tools that applause achievements, not just point out problems.
 
 
 ## Introduction
@@ -22,7 +22,7 @@ This makes programming feel tedious and draining.
 
 We move the programming experience from 'in the dock in a courtroom' to be 'on stage with an enthusiastic audience'.
 
-- **Applaus and Fireworks** on success.
+- **Applause and Fireworks** on success.
 - **Visual Feedback** on inspecting.
 
 Programming becomes rocking the crowds ツ
