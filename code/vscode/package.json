@@ -58,7 +58,9 @@
     "color": "#4CAF50",
     "theme": "light"
   },
-  "activationEvents": ["onStartupFinished"],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -73,26 +75,26 @@
         "category": "Programmers Are People Too"
       }
     ],
-    "configuration":{
-      "type":"object",
+    "configuration": {
+      "type": "object",
       "title": "Programmers are people too",
       "properties": {
-        "ProgrammersArePeopleToo.enable":{
+        "ProgrammersArePeopleToo.enable": {
           "type": "boolean",
           "default": true,
           "description": "Extension acivation or deactivation"
         },
-        "ProgrammersArePeopleToo.underline":{
+        "ProgrammersArePeopleToo.underline": {
           "type": "boolean",
           "default": true,
           "description": "Green underline under the code"
         },
-        "ProgrammersArePeopleToo.animations":{
+        "ProgrammersArePeopleToo.animations": {
           "type": "boolean",
           "default": true,
           "description": "Animations in the line of code"
         },
-        "ProgrammersArePeopleToo.cheerMeUpDurationMinutes":{
+        "ProgrammersArePeopleToo.cheerMeUpDurationMinutes": {
           "type": "number",
           "default": 60,
           "minimum": 1,
@@ -110,17 +112,19 @@
     "lint": "eslint src",
     "test": "vscode-test"
   },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
   "devDependencies": {
-    "@types/vscode": "^1.103.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
+    "@types/vscode": "^1.103.0",
+    "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.45.0",
     "@typescript-eslint/parser": "^8.45.0",
-    "eslint": "^9.36.0",
-    "typescript": "^5.9.3",
     "@vscode/test-cli": "^0.0.11",
-    "@vscode/test-electron": "^2.5.2"
+    "@vscode/test-electron": "^2.5.2",
+    "eslint": "^9.36.0",
+    "typescript": "^5.9.3"
   }
 }
-
-

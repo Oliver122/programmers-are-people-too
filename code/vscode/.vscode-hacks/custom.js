@@ -5,8 +5,7 @@
   // 1) Status bar gentle pulse
   const status = qs('.monaco-workbench .part.statusbar');
   if (status) status.classList.add('pap-status-pulse');
-  const OUTPUT_TRIGGER_PREFIX = 'PAP::fastReassure::';
-  let lastSeenOutputToken = '';
+  // WebSocket bridge (replaces DOM output cue listener)
 
   function debugLog(...args) {
     try {
@@ -17,89 +16,28 @@
   }
 
   debugLog('custom.js bootstrap');
-
-  function extractTokenFromText(text) {
-    if (!text || typeof text !== 'string') {
-      return '';
-    }
-    const match = text.match(/PAP::fastReassure::([a-z0-9]+)/i);
-    return match ? match[0] : '';
-  }
-
-  function handleToken(token) {
-    if (!token || token === lastSeenOutputToken) {
-      return;
-    }
-    lastSeenOutputToken = token;
-    debugLog('Triggering reassureFull for token', token);
-    reassureFull();
-  }
-
-  function scanNodeForToken(node) {
-    if (!node) {
-      return;
-    }
-    if (node.nodeType === Node.TEXT_NODE) {
-      const token = extractTokenFromText(node.textContent);
-      if (token) {
-        debugLog('Detected cue in text node', token);
-        handleToken(token);
-      }
-      return;
-    }
-    if (node.nodeType === Node.ELEMENT_NODE) {
-      const el = node;
-      const possibleAttributes = ['title', 'aria-label', 'data-tooltip'];
-      for (const attr of possibleAttributes) {
-        const value = el.getAttribute && el.getAttribute(attr);
-        const token = extractTokenFromText(value);
-        if (token) {
-          debugLog('Detected cue in attribute', attr, token);
-          handleToken(token);
-          return;
+  const WS_URL = 'ws://127.0.0.1:12718';
+  let ws;
+  function connect() {
+    try {
+      ws = new WebSocket(WS_URL);
+      ws.onopen = () => { try { debugLog('WS connected'); } catch {} };
+      ws.onmessage = (e) => {
+        let data; try { data = JSON.parse(e.data); } catch { return; }
+        if (data && data.type === 'reassure') {
+          const editor = document.querySelector('.monaco-scrollable-element') || document.body;
+          try { window.PAP?.reassureFull?.(editor, 480); } catch {}
+        } else if (data && data.type === 'ripple') {
+          try { window.PAP?.morphRipple?.(); } catch {}
         }
-      }
-      const token = extractTokenFromText(el.textContent);
-      if (token) {
-        debugLog('Detected cue in element text', token);
-        handleToken(token);
-      }
+      };
+      ws.onclose = () => setTimeout(connect, 1000);
+      ws.onerror = () => { try { ws.close(); } catch {} };
+    } catch {
+      setTimeout(connect, 1500);
     }
   }
-
-  function setupOutputCueListener() {
-    debugLog('Setting up output cue listener');
-    const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        if (mutation.type === 'characterData') {
-          scanNodeForToken(mutation.target);
-        }
-        if (mutation.addedNodes) {
-          for (const node of mutation.addedNodes) {
-            scanNodeForToken(node);
-            if (node.nodeType === Node.ELEMENT_NODE) {
-              for (const textNode of node.querySelectorAll('*')) {
-                scanNodeForToken(textNode);
-              }
-            }
-          }
-        }
-      }
-    });
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      characterData: true
-    });
-
-    // Immediate check on load
-    scanNodeForToken(document.body);
-
-    debugLog('Output cue listener ready');
-  }
-
-  setupOutputCueListener();
+  connect();
 
   // 2) Sweep (kept)
   function sweep() {
