@@ -102,6 +102,40 @@
            qs('.part.panel .pane-body') ||
            qs('.part.panel');
   }
+  function sideBarEl() {
+    return qs('.monaco-workbench .part.sidebar') || qs('.part.sidebar');
+  }
+  function auxBarEl() {
+    // VS Code right-hand bar (aka Secondary Side Bar / Auxiliary Bar)
+    return qs('.monaco-workbench .part.auxiliarybar') || qs('.part.auxiliarybar');
+  }
+
+  function panelRightOfTerminalEl() {
+    const panel = qs('.part.panel');
+    if (!panel) return null;
+    const term = terminalEl();
+    if (!term) return null;
+    const tRect = term.getBoundingClientRect();
+    // Find visible split children inside panel
+    const splits = Array.from(panel.querySelectorAll('.split-view-view'))
+      .filter((el) => el.offsetWidth > 0 && el.offsetHeight > 0);
+    if (!splits.length) return null;
+    // Pick the split whose left edge is to the right of terminal center
+    const candidates = splits
+      .map((el) => ({ el, rect: el.getBoundingClientRect() }))
+      .filter((o) => o.rect.left > tRect.left + tRect.width / 2 - 1);
+    if (candidates.length) {
+      // Choose the rightmost candidate
+      candidates.sort((a, b) => a.rect.left - b.rect.left);
+      return candidates[candidates.length - 1].el;
+    }
+    // Fallback: choose the widest non-terminal split
+    const nonTerminal = splits
+      .map((el) => ({ el, rect: el.getBoundingClientRect() }))
+      .filter((o) => Math.abs(o.rect.left - tRect.left) > 2 || Math.abs(o.rect.width - tRect.width) > 2)
+      .sort((a, b) => b.rect.width - a.rect.width);
+    return nonTerminal[0]?.el || null;
+  }
 
   document.addEventListener('keydown', (e) => {
     // Sweep: Ctrl+Shift+Alt+P
@@ -237,6 +271,39 @@
     setTimeout(done, 700);
   }
 
+  function laserPulseSidebar() {
+    const s = sideBarEl();
+    if (s) {
+      laserPulseElement(s);
+    } else {
+      laserPulseFull();
+    }
+  }
+
+  function laserPulseRightBar() {
+    const r = auxBarEl();
+    if (r) {
+      laserPulseElement(r);
+    } else {
+      laserPulseFull();
+    }
+  }
+
+  function laserPulsePanelRight() {
+    const p = panelRightOfTerminalEl();
+    if (p) {
+      laserPulseElement(p);
+    } else {
+      // Fall back to panel itself
+      const panel = qs('.part.panel');
+      if (panel) {
+        laserPulseElement(panel);
+      } else {
+        laserPulseFull();
+      }
+    }
+  }
+
   // ---- Hotkeys for new effects ----
   document.addEventListener('keydown', (e) => {
     // Fast Reassure: Ctrl+Alt+E
@@ -256,6 +323,18 @@
       const t = terminalEl();
       if (t) laserPulseElement(t);
     }
+    // Laser Pulse (Sidebar/Task area): Ctrl+Alt+S
+    if (e.ctrlKey && e.altKey && !e.shiftKey && e.code === 'KeyS') {
+      laserPulseSidebar();
+    }
+    // Laser Pulse (Right of Terminal in Panel): Ctrl+Alt+R
+    if (e.ctrlKey && e.altKey && !e.shiftKey && e.code === 'KeyR') {
+      laserPulsePanelRight();
+    }
+    // Laser Pulse (Auxiliary Bar / secondary sidebar): Ctrl+Alt+A
+    if (e.ctrlKey && e.altKey && !e.shiftKey && e.code === 'KeyA') {
+      laserPulseRightBar();
+    }
   });
 
   window.PAP = Object.assign(window.PAP || {}, {
@@ -263,6 +342,9 @@
     reassureFull,
     morphRipple,
     laserPulseFull,
-    laserPulseElement
+    laserPulseElement,
+    laserPulseSidebar,
+    laserPulseRightBar,
+    laserPulsePanelRight
   });
 })();
