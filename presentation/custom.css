@@ -1,0 +1,211 @@
+/* Custom styling for Programmers Are People Too presentation */
+
+:root {
+    --primary-purple: #667eea;
+    --secondary-purple: #764ba2;
+    --success-green: #4CAF50;
+    --error-red: #ff6b6b;
+    --warning-yellow: #feca57;
+}
+
+.reveal {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-size: 32px; /* Optimized for 16:10 screens */
+}
+
+.reveal h1, .reveal h2, .reveal h3 {
+    font-weight: 600;
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+}
+
+.reveal h2 {
+    font-size: 1.8em;
+    margin-bottom: 0.5em;
+}
+
+.reveal h3 {
+    font-size: 1.4em;
+}
+
+.reveal p {
+    font-size: 1em;
+    line-height: 1.4;
+}
+
+.title-main {
+    font-size: 2.5em !important;
+    color: #4CAF50 !important;
+    margin-bottom: 0.3em !important;
+    background-clip: text;
+}
+
+.subtitle {
+    font-size: 1.2em;
+    opacity: 0.9;
+    margin-bottom: 2em;
+}
+
+.team {
+    font-size: 0.9em;
+    opacity: 0.7;
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    text-align: center;
+}
+
+.impact-list {
+    list-style: none;
+    padding: 0;
+    font-size: 1.1em;
+}
+
+.impact-list li {
+    margin: 20px 0;
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+}
+
+.solution-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+    margin-top: 40px;
+    font-size: 0.85em;
+}
+
+.solution-grid > div {
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.solution-grid > div:hover {
+    transform: translateY(-10px);
+}
+
+.stats-demo {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-top: 30px;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.stat-card {
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    font-size: 0.9em;
+}
+
+.stat-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 40px rgba(76, 175, 80, 0.3);
+}
+
+code {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85em;
+}
+
+/* Animation for fragments */
+.reveal .fragment.visible {
+    animation: slideInUp 0.5s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Custom background gradients */
+.reveal section[data-background-gradient] {
+    background-attachment: fixed;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .solution-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-demo {
+        grid-template-columns: 1fr;
+    }
+    
+    .title-main {
+        font-size: 2em !important;
+    }
+    
+    .reveal {
+        font-size: 24px;
+    }
+}
+
+/* Smooth transitions */
+.reveal .slides section {
+    transition: all 0.5s ease;
+}
+
+/* Hover effects for images */
+.reveal img {
+    transition: transform 0.3s ease;
+}
+
+.reveal img:hover {
+    transform: scale(1.02);
+}
+
+/* Custom bullet points */
+.reveal ul {
+    list-style: none;
+}
+
+.reveal ul li::before {
+    content: "→ ";
+    color: var(--success-green);
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+/* Code highlighting */
+.reveal pre {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.reveal pre code {
+    background: transparent;
+    padding: 0;
+}
+
+/* Emphasis colors */
+.reveal strong {
+    color: var(--success-green);
+}
+
+.reveal em {
+    color: var(--primary-purple);
+    font-style: normal;
+}
