@@ -15,6 +15,54 @@
   }
 
   debugLog('custom.js bootstrap');
+  // Ensure required CSS is present for effects
+  function ensureStyles() {
+    if (document.getElementById('pap-style-effects')) return;
+    const style = document.createElement('style');
+    style.id = 'pap-style-effects';
+    style.textContent = `
+/* ========= REASSURE: full-screen -> zero ========= */
+.pap-reassure { position: fixed; inset: 0; pointer-events: none; z-index: 10000; }
+.pap-reassure::before {
+  content: "";
+  position: fixed;
+  left: var(--cx); top: var(--cy);
+  --rBase: 120px;
+  width: calc(var(--rBase) * 2); height: calc(var(--rBase) * 2);
+  transform: translate(-50%, -50%) scale(var(--s0, 1));
+  border-radius: 50%;
+  box-shadow: 0 0 22px 6px rgba(255,255,255,0.14), 0 0 0 2px rgba(255,255,255,0.26) inset;
+  background: radial-gradient(circle, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.0) 60%);
+  animation: pap-reassure-to-zero var(--dur, 240ms) linear forwards;
+}
+.pap-reassure::after {
+  content: "";
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.20);
+  animation: pap-reassure-dim var(--dur, 240ms) linear forwards;
+}
+@keyframes pap-reassure-to-zero {
+  from { opacity: .95; transform: translate(-50%,-50%) scale(var(--s0, 1)); }
+  to   { opacity: 0;   transform: translate(-50%,-50%) scale(0); }
+}
+@keyframes pap-reassure-dim { from { opacity: .18; } to { opacity: 0; } }
+
+/* ========= GREEN LASER PULSE ========= */
+.pap-laser-pulse {
+  position: fixed; pointer-events: none; z-index: 10003; border: 2px solid #00ff88;
+  box-shadow: 0 0 20px 4px rgba(0, 255, 136, 0.8), 0 0 40px 8px rgba(0, 255, 136, 0.6), inset 0 0 20px 4px rgba(0, 255, 136, 0.4);
+  animation: pap-laser-pulse-anim 600ms ease-out forwards;
+}
+.pap-laser-pulse.full { inset: 0; }
+.pap-laser-pulse.element { /* positioned dynamically */ }
+@keyframes pap-laser-pulse-anim {
+  0% { opacity: 0; box-shadow: 0 0 10px 2px rgba(0,255,136,0.9), 0 0 20px 4px rgba(0,255,136,0.7), inset 0 0 10px 2px rgba(0,255,136,0.5); }
+  20% { opacity: 1; box-shadow: 0 0 30px 8px rgba(0,255,136,1), 0 0 60px 16px rgba(0,255,136,0.8), inset 0 0 30px 8px rgba(0,255,136,0.6); }
+  100% { opacity: 0; box-shadow: 0 0 50px 20px rgba(0,255,136,0.2), 0 0 100px 40px rgba(0,255,136,0.1), inset 0 0 50px 20px rgba(0,255,136,0.1); }
+}`;
+    document.head.appendChild(style);
+  }
+  ensureStyles();
   const WS_URL = 'ws://127.0.0.1:12718';
   let ws;
   function connect() {
@@ -164,6 +212,31 @@
     setTimeout(() => { workbench.style.filter = originalFilter || ''; }, durationMs + 20);
   }
 
+  // ---- Green Laser Pulse (full + element variants) ----
+  function laserPulseFull() {
+    const d = document.createElement('div');
+    d.className = 'pap-laser-pulse full';
+    document.body.appendChild(d);
+    const done = () => d.remove();
+    d.addEventListener('animationend', done, { once: true });
+    setTimeout(done, 700);
+  }
+
+  function laserPulseElement(el) {
+    const target = el || terminalEl() || statusBarEl() || document.body;
+    const rect = target.getBoundingClientRect();
+    const d = document.createElement('div');
+    d.className = 'pap-laser-pulse element';
+    d.style.left = `${rect.left}px`;
+    d.style.top = `${rect.top}px`;
+    d.style.width = `${rect.width}px`;
+    d.style.height = `${rect.height}px`;
+    document.body.appendChild(d);
+    const done = () => d.remove();
+    d.addEventListener('animationend', done, { once: true });
+    setTimeout(done, 700);
+  }
+
   // ---- Hotkeys for new effects ----
   document.addEventListener('keydown', (e) => {
     // Fast Reassure: Ctrl+Alt+E
@@ -174,11 +247,22 @@
     if (e.ctrlKey && e.altKey && !e.shiftKey && e.code === 'KeyQ') {
       morphRipple();
     }
+    // Laser Pulse (Full Screen): Ctrl+Alt+G
+    if (e.ctrlKey && e.altKey && !e.shiftKey && e.code === 'KeyG') {
+      laserPulseFull();
+    }
+    // Laser Pulse (Terminal Element): Ctrl+Alt+T
+    if (e.ctrlKey && e.altKey && !e.shiftKey && e.code === 'KeyT') {
+      const t = terminalEl();
+      if (t) laserPulseElement(t);
+    }
   });
 
   window.PAP = Object.assign(window.PAP || {}, {
     sweep,
     reassureFull,
-    morphRipple
+    morphRipple,
+    laserPulseFull,
+    laserPulseElement
   });
 })();
