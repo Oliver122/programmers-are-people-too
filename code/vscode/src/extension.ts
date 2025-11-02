@@ -140,6 +140,7 @@ export function activate(context: vscode.ExtensionContext) {
 	setupSaveMonitoring(context);
 	setupFileCreationMonitoring(context);
 	setupFileRenameMonitoring(context);
+	setupFileDeleteMonitoring(context);
 
 	//Example to extract config values
 	/* vscode.workspace.onDidChangeConfiguration((event) => {
@@ -251,7 +252,7 @@ function setupTaskMonitoring(context: vscode.ExtensionContext) {
 		
 		if (exitCode === 0) {
 			log(`✅ Task "${taskName}" succeeded`);
-			// TODO: Add celebration animation
+			broadcast({ type: 'laser', scope: 'terminal' });
 		} else {
 			log(`❌ Task "${taskName}" failed with code ${exitCode}`);
 		}
@@ -280,7 +281,7 @@ function setupFileCreationMonitoring(context: vscode.ExtensionContext) {
 			
 			// Track file creation
 			statsTracker.trackFileCreated(uri);
-			// TODO: Add creation animation
+			broadcast({ type: 'laser', scope: 'sidebar' });
 		}
 	});
 	context.subscriptions.push(subscription);
@@ -295,7 +296,19 @@ function setupFileRenameMonitoring(context: vscode.ExtensionContext) {
 			
 			// Track file rename
 			statsTracker.trackFileRenamed(oldUri, newUri);
-			// TODO: Add rename animation
+			broadcast({ type: 'laser', scope: 'sidebar' });
+		}
+	});
+	context.subscriptions.push(subscription);
+}
+
+function setupFileDeleteMonitoring(context: vscode.ExtensionContext) {
+	const subscription = vscode.workspace.onDidDeleteFiles((event) => {
+		for (const uri of event.files) {
+			const fileName = uri.fsPath.split(/[\/\\]/).pop() || uri.fsPath;
+			log(`🗑️ Deleted ${fileName}`);
+			// Visual sweep to indicate removal
+			broadcast({ type: 'sweep' });
 		}
 	});
 	context.subscriptions.push(subscription);

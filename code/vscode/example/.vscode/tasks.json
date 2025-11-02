@@ -6,7 +6,8 @@
 		{
 			"label": "test-success",
 			"type": "shell",
-			"command": "echo 'Task succeeded!' && exit 0"
+			"command": "echo 'Task succeeded!' && exit 0",
+			"problemMatcher": []
 		},
 		{
 			"label": "test-failure",

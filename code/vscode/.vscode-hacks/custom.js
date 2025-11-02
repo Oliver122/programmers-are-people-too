@@ -59,7 +59,22 @@
   0% { opacity: 0; box-shadow: 0 0 10px 2px rgba(0,255,136,0.9), 0 0 20px 4px rgba(0,255,136,0.7), inset 0 0 10px 2px rgba(0,255,136,0.5); }
   20% { opacity: 1; box-shadow: 0 0 30px 8px rgba(0,255,136,1), 0 0 60px 16px rgba(0,255,136,0.8), inset 0 0 30px 8px rgba(0,255,136,0.6); }
   100% { opacity: 0; box-shadow: 0 0 50px 20px rgba(0,255,136,0.2), 0 0 100px 40px rgba(0,255,136,0.1), inset 0 0 50px 20px rgba(0,255,136,0.1); }
-}`;
+}
+
+/* ========= SWEEP (subtle left-to-right wipe) ========= */
+.pap-sweep {
+  position: fixed; inset: 0; pointer-events: none; z-index: 10002;
+  background: linear-gradient(90deg,
+    rgba(0,0,0,0) 0%,
+    rgba(0,255,160,0.10) 50%,
+    rgba(0,0,0,0) 100%);
+  transform: translateX(-100%);
+  animation: pap-sweep 420ms ease-out forwards;
+}
+@keyframes pap-sweep {
+  to { transform: translateX(100%); opacity: 0; }
+}
+`;
     document.head.appendChild(style);
   }
   ensureStyles();
@@ -71,11 +86,47 @@
       ws.onopen = () => { try { debugLog('WS connected'); } catch {} };
       ws.onmessage = (e) => {
         let data; try { data = JSON.parse(e.data); } catch { return; }
-        if (data && data.type === 'reassure') {
+        if (!data || !data.type) return;
+
+        if (data.type === 'reassure') {
           const editor = document.querySelector('.monaco-scrollable-element') || document.body;
           try { window.PAP?.reassureFull?.(editor, 480); } catch {}
-        } else if (data && data.type === 'ripple') {
+          return;
+        }
+
+        if (data.type === 'ripple') {
           try { window.PAP?.morphRipple?.(); } catch {}
+          return;
+        }
+
+        if (data.type === 'laser') {
+          const scope = data.scope || 'full';
+          try {
+            if (scope === 'full') {
+              window.PAP?.laserPulseFull?.();
+            } else if (scope === 'editor') {
+              const el = document.querySelector('.monaco-scrollable-element') || document.body;
+              window.PAP?.laserPulseElement?.(el);
+            } else if (scope === 'terminal') {
+              const el = (typeof terminalEl === 'function' && terminalEl()) || document.body;
+              window.PAP?.laserPulseElement?.(el);
+            } else if (scope === 'sidebar') {
+              window.PAP?.laserPulseSidebar?.();
+            } else if (scope === 'rightBar') {
+              window.PAP?.laserPulseRightBar?.();
+            } else if (scope === 'panelRight') {
+              window.PAP?.laserPulsePanelRight?.();
+            } else {
+              // Fallback
+              window.PAP?.laserPulseFull?.();
+            }
+          } catch {}
+          return;
+        }
+
+        if (data.type === 'sweep') {
+          try { window.PAP?.sweep?.(); } catch {}
+          return;
         }
       };
       ws.onclose = () => setTimeout(connect, 1000);
