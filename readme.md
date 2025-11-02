@@ -1,6 +1,8 @@
 # Programmers Are People Too ✨
 
-![Programmers Are People Too Logo](assets/ProgrammersArepeopleToo.png)
+![Programmers Are People Too Banner](assets/banner.png)
+
+**Available now on the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=dan-42.programmersarepeopletoo)!**
 
 *Improving the programming experience by giving Positive feedback (Applause on successes) in a addition to the prevalent negative Feedback (Error Highlighting).* 
 
@@ -105,6 +107,7 @@ npm run watch  # Start TypeScript compiler in watch mode
 ├── code/
 │   ├── vscode/          # VS Code extension source
 │   └── nvim/            # Neovim plugin (planned)
+├── presentation/        # BaselHack 2025 pitch deck (reveal.js)
 ├── documentation/       # Project docs
 ├── assets/             # Media and presentations
 └── .github/            # AI agent instructions
@@ -124,6 +127,8 @@ This project was created by:
 - **[Dan](https://github.com/dan-42)** ([@dan-42](https://github.com/dan-42))
 - **[Andrey Dodonov](https://github.com/AndreyDodonov-EH)** ([@AndreyDodonov-EH](https://github.com/AndreyDodonov-EH))
 - **[Kleeblitz](https://github.com/Kleeblitz)** ([@Kleeblitz](https://github.com/Kleeblitz))
+- **[dedunden](https://github.com/dedunden)** ([@dedunden](https://github.com/dedunden))
+
 
 ## License 📄
 

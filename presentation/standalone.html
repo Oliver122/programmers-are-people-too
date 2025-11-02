@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programmers Are People Too - BaselHack 2025</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/theme/black.css">
+    <style>
+        /* Custom styling for Programmers Are People Too presentation */
+        :root {
+            --primary-purple: #667eea;
+            --secondary-purple: #764ba2;
+            --success-green: #4CAF50;
+            --error-red: #ff6b6b;
+            --warning-yellow: #feca57;
+        }
+
+        .reveal {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-size: 32px;
+        }
+
+        .reveal h1, .reveal h2, .reveal h3 {
+            font-weight: 600;
+            text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .reveal h2 {
+            font-size: 1.8em;
+            margin-bottom: 0.5em;
+        }
+
+        .reveal h3 {
+            font-size: 1.4em;
+        }
+
+        .reveal p {
+            font-size: 1em;
+            line-height: 1.4;
+        }
+
+        .title-main {
+            font-size: 2.5em !important;
+            color: #4CAF50 !important;
+            margin-bottom: 0.3em !important;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin-bottom: 2em;
+        }
+
+        .team {
+            font-size: 0.9em;
+            opacity: 0.7;
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .impact-list {
+            list-style: none;
+            padding: 0;
+            font-size: 1.1em;
+        }
+
+        .impact-list li {
+            margin: 20px 0;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .solution-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-top: 40px;
+            font-size: 0.85em;
+        }
+
+        .solution-grid > div {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .solution-grid > div:hover {
+            transform: translateY(-10px);
+        }
+
+        .stats-demo {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 30px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .stat-card {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .stat-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 40px rgba(76, 175, 80, 0.3);
+        }
+
+        code {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+        }
+
+        .reveal .fragment.visible {
+            animation: slideInUp 0.5s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .reveal section[data-background-gradient] {
+            background-attachment: fixed;
+        }
+
+        @media (max-width: 768px) {
+            .solution-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-demo {
+                grid-template-columns: 1fr;
+            }
+            
+            .title-main {
+                font-size: 2em !important;
+            }
+            
+            .reveal {
+                font-size: 24px;
+            }
+        }
+
+        .reveal .slides section {
+            transition: all 0.5s ease;
+        }
+
+        .reveal img {
+            transition: transform 0.3s ease;
+        }
+
+        .reveal img:hover {
+            transform: scale(1.02);
+        }
+
+        .reveal ul {
+            list-style: none;
+        }
+
+        .reveal ul li::before {
+            content: "→ ";
+            color: var(--success-green);
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .reveal pre {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .reveal pre code {
+            background: transparent;
+            padding: 0;
+        }
+
+        .reveal strong {
+            color: var(--success-green);
+        }
+
+        .reveal em {
+            color: var(--primary-purple);
+            font-style: normal;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+            
+            <!-- Slide 1: Title -->
+            <section data-background-gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
+                <h1 class="title-main" style="color: #4CAF50;">Programmers Are People Too ✨</h1>
+                <p class="subtitle">Breaking the negative feedback loop</p>
+            </section>
+
+            <!-- Slide 2: The Dark Truth -->
+            <section data-background-color="#1a1a1a">
+                <h2 style="color: #ff6b6b; font-size: 1.5em;">The Developer's Daily Nightmare 🚨</h2>
+                <div class="fragment">
+                    <p style="font-size: 1em; color: #ff6b6b;">❌ ❌ ❌</p>
+                    <p style="color: #ff6b6b; font-size: 1em;">Red underlines everywhere</p>
+                </div>
+                <div class="fragment">
+                    <p style="font-size: 1em; color: #feca57;">⚠️ ⚠️ ⚠️</p>
+                    <p style="color: #feca57; font-size: 1em;">Yellow warnings screaming</p>
+                </div>
+                <div class="fragment">
+                    <p style="font-size: 1em; color: #ee5a6f;">💔 💔 💔</p>
+                    <p style="color: #ee5a6f; font-size: 1em;">Compiler judging your life choices</p>
+                </div>
+            </section>
+
+            <!-- Slide 3: The Psychological Impact -->
+            <section data-background-color="#2d2d2d">
+                <h2>The Real Cost 😰</h2>
+                <ul class="impact-list">
+                    <li class="fragment">🧠 Constant negativity → Lower self-esteem</li>
+                    <li class="fragment">😔 Only punishment, never celebration</li>
+                    <li class="fragment">💤 Success = silence (how motivating... NOT)</li>
+                    <li class="fragment">🌧️ Coding feels like being yelled at by a robot</li>
+                </ul>
+                <p class="fragment" style="margin-top: 50px; font-size: 1.8em; color: #ff6b6b;">
+                    <strong>Result: Developer depression 📉</strong>
+                </p>
+            </section>
+
+            <!-- Slide 4: The Question -->
+            <section data-background-gradient="linear-gradient(45deg, #667eea 0%, #764ba2 100%)">
+                <h2 style="font-size: 2.5em;">But wait... 🤔</h2>
+                <p class="fragment" style="font-size: 2em; margin-top: 80px;">
+                    What if your IDE was your <span style="color: #4CAF50;">motivator</span>
+                </p>
+                <p class="fragment" style="font-size: 2em;">
+                    instead of your <span style="color: #ff6b6b;">judge</span>?
+                </p>
+            </section>
+
+            <!-- Slide 5: Solution - Positive Reinforcement -->
+            <section data-background-color="#1a1a1a">
+                <h2 style="color: #4CAF50;">Our Solution: Positive Vibes Only ✨</h2>
+                <div class="solution-grid">
+                    <div class="fragment">
+                        <p style="font-size: 2em;">✨</p>
+                        <p><strong>Subtle sparkles</strong></p>
+                        <p>Fixed that typo? Boom, sparkles!</p>
+                    </div>
+                    <div class="fragment">
+                        <p style="font-size: 2em;">💚</p>
+                        <p><strong>Smooth pulse</strong></p>
+                        <p>Small wins deserve recognition</p>
+                    </div>
+                    <div class="fragment">
+                        <p style="font-size: 2em;">🎊</p>
+                        <p><strong>CONFETTI</strong></p>
+                        <p>File clean? Task passed? CELEBRATE!</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 6: Live Demo Moment -->
+            <section data-background-gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
+                <h2>See It In Action 🎬</h2>
+                <img src="https://raw.githubusercontent.com/Oliver122/programmers-are-people-too/main/assets/highlight_fixed_code.gif" style="max-width: 80%; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+                <p class="fragment" style="margin-top: 30px; font-size: 1.3em;">
+                    Real-time positive feedback as you code
+                </p>
+            </section>
+
+            <!-- Slide 7: Cheer Me Up Command -->
+            <section data-background-color="#2d2d2d">
+                <h2>Late Night Dopamine Hit 🌙</h2>
+                <p style="font-size: 1.5em; margin-bottom: 40px;">
+                    <code style="color: #4CAF50;">> Cheer Me Up</code>
+                </p>
+                <img src="https://raw.githubusercontent.com/Oliver122/programmers-are-people-too/main/assets/cheer_me_up_command.gif" style="max-width: 70%; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+                <div class="fragment" style="margin-top: 30px;">
+                    <p style="font-size: 1.3em;">See ALL your wins from the last hour</p>
+                    <p style="color: #4CAF50;">165+ unique motivational messages</p>
+                </div>
+            </section>
+
+            <!-- Slide 8: Stats Panel -->
+            <section data-background-gradient="linear-gradient(45deg, #667eea 0%, #764ba2 100%)">
+                <h2>Your Achievement Panel 🏆</h2>
+                <div class="stats-demo">
+                    <div class="stat-card fragment">
+                        <div style="font-size: 3em;">✨</div>
+                        <div>Fixed 12 errors</div>
+                    </div>
+                    <div class="stat-card fragment">
+                        <div style="font-size: 3em;">✅</div>
+                        <div>5 tasks completed</div>
+                    </div>
+                    <div class="stat-card fragment">
+                        <div style="font-size: 3em;">📝</div>
+                        <div>Created 3 files</div>
+                    </div>
+                    <div class="stat-card fragment">
+                        <div style="font-size: 3em;">💾</div>
+                        <div>Modified 23 files</div>
+                    </div>
+                </div>
+                <p class="fragment" style="margin-top: 40px; font-size: 1.5em; color: #4CAF50;">
+                    <strong>"You're crushing it! 🎯"</strong>
+                </p>
+            </section>
+
+            <!-- Slide 9: Neovim Too -->
+            <section data-background-color="#1a1a1a">
+                <h2>NVim Users, We Got You! 🎯</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center;">
+                    <div>
+                        <img src="https://raw.githubusercontent.com/Oliver122/programmers-are-people-too/main/assets/icon.png" style="max-width: 200px; border-radius: 20px;">
+                        <p style="margin-top: 20px; font-size: 1.2em;">VS Code Extension</p>
+                        <p style="color: #4CAF50;">✅ Available Now</p>
+                    </div>
+                    <div class="fragment">
+                        <p style="font-size: 4em;">🎸</p>
+                        <p style="margin-top: 20px; font-size: 1.2em;">Neovim Plugin</p>
+                        <p style="color: #feca57;">🚧 Coming Soon</p>
+                        <p style="font-size: 0.9em; margin-top: 10px; opacity: 0.8;">
+                            Same vibes, terminal-native
+                        </p>
+                    </div>
+                </div>
+                <p class="fragment" style="margin-top: 50px; font-size: 1.3em;">
+                    <em>Because ALL developers deserve positivity</em>
+                </p>
+            </section>
+
+            <!-- Slide 10: The Impact & Vision -->
+            <section data-background-gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
+                <h2>Why This Matters 🌟</h2>
+                <div style="text-align: left; max-width: 800px; margin: 0 auto;">
+                    <p class="fragment" style="font-size: 1.3em; margin-bottom: 30px;">
+                        💡 <strong>Mental health in tech is real</strong>
+                    </p>
+                    <p class="fragment" style="font-size: 1.3em; margin-bottom: 30px;">
+                        🎓 <strong>Good teachers use green pens too</strong>
+                    </p>
+                    <p class="fragment" style="font-size: 1.3em; margin-bottom: 30px;">
+                        🚀 <strong>Positive feedback = Better code, happier devs</strong>
+                    </p>
+                    <p class="fragment" style="font-size: 1.3em; margin-bottom: 30px;">
+                        🌍 <strong>Changing dev culture, one sparkle at a time</strong>
+                    </p>
+                </div>
+            </section>
+
+            <!-- Slide 11: The Future -->
+            <section data-background-color="#2d2d2d">
+                <h2>What's Next? 🔮</h2>
+                <ul style="font-size: 1.2em; text-align: left; max-width: 700px; margin: 0 auto;">
+                    <li class="fragment">🤖 <strong>AI-powered code appreciation</strong> - "Nice refactor, chef's kiss!"</li>
+                    <li class="fragment">👥 <strong>Team celebration mode</strong> - Share the wins</li>
+                    <li class="fragment">🎨 <strong>Custom celebration styles</strong> - Your vibe, your way</li>
+                    <li class="fragment">📊 <strong>Weekly progress reports</strong> - "Look how far you've come!"</li>
+                    <li class="fragment">🌈 <strong>More editor integrations</strong> - IntelliJ, Sublime, Emacs...</li>
+                </ul>
+            </section>
+
+            <!-- Slide 12: Call to Action -->
+            <section data-background-gradient="linear-gradient(45deg, #4CAF50 0%, #667eea 100%)">
+                <h1 style="font-size: 3em; margin-bottom: 40px;">Join the Movement! 🎉</h1>
+                <p style="font-size: 1.5em; margin-bottom: 30px;">
+                    Available NOW on VS Code Marketplace
+                </p>
+                <p style="font-size: 2em; color: #fff;">
+                    <strong style="color: #8a46ff;">Programmers Are People Too</strong>
+                </p>
+                <div style="margin-top: 60px; display: flex; gap: 40px; justify-content: center; align-items: center;">
+                    <div>
+                        <p style="font-size: 0.9em; opacity: 0.9;">GitHub</p>
+                        <p style="font-size: 0.8em; opacity: 0.8;">Oliver122/programmers-are-people-too</p>
+                    </div>
+                    <div style="font-size: 3em;">|</div>
+                    <div>
+                        <p style="font-size: 0.9em; opacity: 0.9;">Team</p>
+                        <p style="font-size: 0.8em; opacity: 0.8;">Oliver • Dan • Andrey • Kleeblitz • Dedunden</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 13: Mic Drop -->
+            <section data-background-gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 60px; position: relative; z-index: 10;">
+                    <h1 style="font-size: 5em; margin: 0; animation: pulse 2s infinite; flex-shrink: 0;">🎤</h1>
+                    <div style="flex: 1; max-width: 800px;">
+                        <div style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 40px 60px; border: 2px solid rgba(255, 255, 255, 0.2); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+                            <p style="font-size: 2.2em; margin-bottom: 30px; line-height: 1.4; background: linear-gradient(135deg, #fff 0%, #4CAF50 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700;">
+                                Because your code editor should be your motivator
+                            </p>
+                            <p style="font-size: 1.6em; color: #ff6b6b; font-weight: 600; margin-bottom: 0;">
+                                not the reason you're in therapy
+                            </p>
+                        </div>
+                        <div style="margin-top: 60px; font-size: 3em; text-align: center;">
+                            <span style="display: inline-block; animation: bounce 1s infinite; color: #4CAF50;">✨</span>
+                            <span style="font-size: 1.2em; margin: 0 20px;">Questions?</span>
+                            <span style="display: inline-block; animation: bounce 1s infinite 0.5s; color: #4CAF50;">✨</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@5/dist/reveal.js"></script>
+    <script>
+        Reveal.initialize({
+            hash: true,
+            transition: 'slide',
+            transitionSpeed: 'fast',
+            backgroundTransition: 'fade',
+            controls: true,
+            progress: true,
+            center: true,
+            slideNumber: false,
+            autoPlayMedia: true,
+        });
+    </script>
+</body>
+</html>
