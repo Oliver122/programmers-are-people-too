@@ -5,10 +5,21 @@ import { getMotivationalHtml } from './motivationalPanel';
 
 const outputChannel = vscode.window.createOutputChannel('Programmers Are People Too');
 let statsTracker: StatisticsTracker;
+const SAVE_CELEBRATION_PREFIX = 'PAP::fastReassure::';
 
 function log(message: string) {
 	console.log(message);
 	outputChannel.appendLine(message);
+}
+
+function triggerSaveCelebration() {
+	const config = vscode.workspace.getConfiguration('ProgrammersArePeopleToo');
+	if (!config.get<boolean>('animations', true)) {
+		return;
+	}
+
+	const triggerToken = Date.now().toString(36);
+	log(`${SAVE_CELEBRATION_PREFIX}${triggerToken}`);
 }
 
 function showMotivationalPanel(context: vscode.ExtensionContext, data: import('./statistics').MotivationalData) {
@@ -235,7 +246,7 @@ function setupSaveMonitoring(context: vscode.ExtensionContext) {
 		
 		// Track file change
 		statsTracker.trackFileChanged(document.uri);
-		// TODO: Add save animation
+		triggerSaveCelebration();
 	});
 	context.subscriptions.push(subscription);
 }

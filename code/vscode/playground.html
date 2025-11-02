@@ -76,7 +76,7 @@
 
 <div class="workbench">
   <div class="titlebar">
-    <strong>Effects — Ctrl+Alt+E (Reassure) • Ctrl+Alt+M (Morph Ripple)</strong>
+    <strong>Effects — Ctrl+Alt+E (Reassure) • Ctrl+Alt+Q (Morph Ripple)</strong>
   </div>
 
   <div class="editor" id="editor">
@@ -86,7 +86,7 @@
 // Ctrl+Alt+E → Fast Reassure Effect (240ms)
 //              Shrinks from full viewport to zero
 //
-// Ctrl+Alt+M → Morph Ripple (800ms)
+// Ctrl+Alt+Q → Morph Ripple (800ms)
 //              Telegram-style wave distortion
 //              that ripples through the screen</pre>
     </div>
@@ -169,7 +169,7 @@
       if (e.code === 'KeyE') {
         reassureFull($editor, 240);
       }
-      if (e.code === 'KeyM') {
+      if (e.code === 'KeyQ') {
         morphRipple();
       }
     }
