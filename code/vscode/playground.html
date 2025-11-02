@@ -2,7 +2,7 @@
 <html lang="en">
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Fast Reassure + Morph Ripple — Playground</title>
+<title>Visual Effects Playground — Reassure, Morph, Laser Pulse</title>
 <style>
   :root { --bg:#0f111a; --panel:#11131d; --text:#c6d0f5; --accent:#8caaee; }
   html,body { margin:0; height:100%; background:var(--bg); color:var(--text);
@@ -49,6 +49,53 @@
     to   { opacity: 0;   transform: translate(-50%,-50%) scale(0); }
   }
   @keyframes pap-reassure-dim { from { opacity: .18; } to { opacity: 0; } }
+
+  /* ========= GREEN LASER PULSE ========= */
+  .pap-laser-pulse {
+    position: fixed;
+    pointer-events: none;
+    z-index: 10003;
+    border: 2px solid #00ff88;
+    box-shadow:
+      0 0 20px 4px rgba(0, 255, 136, 0.8),
+      0 0 40px 8px rgba(0, 255, 136, 0.6),
+      inset 0 0 20px 4px rgba(0, 255, 136, 0.4);
+    animation: pap-laser-pulse-anim 600ms ease-out forwards;
+  }
+  
+  /* Full screen variant */
+  .pap-laser-pulse.full {
+    inset: 0;
+  }
+  
+  /* Element variant */
+  .pap-laser-pulse.element {
+    /* Position set dynamically via JS */
+  }
+  
+  @keyframes pap-laser-pulse-anim {
+    0% {
+      opacity: 0;
+      box-shadow:
+        0 0 10px 2px rgba(0, 255, 136, 0.9),
+        0 0 20px 4px rgba(0, 255, 136, 0.7),
+        inset 0 0 10px 2px rgba(0, 255, 136, 0.5);
+    }
+    20% {
+      opacity: 1;
+      box-shadow:
+        0 0 30px 8px rgba(0, 255, 136, 1),
+        0 0 60px 16px rgba(0, 255, 136, 0.8),
+        inset 0 0 30px 8px rgba(0, 255, 136, 0.6);
+    }
+    100% {
+      opacity: 0;
+      box-shadow:
+        0 0 50px 20px rgba(0, 255, 136, 0.2),
+        0 0 100px 40px rgba(0, 255, 136, 0.1),
+        inset 0 0 50px 20px rgba(0, 255, 136, 0.1);
+    }
+  }
 </style>
 
 <svg style="position:absolute; width:0; height:0;">
@@ -76,19 +123,24 @@
 
 <div class="workbench">
   <div class="titlebar">
-    <strong>Effects — Ctrl+Alt+E (Reassure) • Ctrl+Alt+Q (Morph Ripple)</strong>
+    <strong>Effects — E: Reassure • M: Morph • G: Laser Full • T: Laser Terminal (Ctrl+Alt)</strong>
   </div>
 
   <div class="editor" id="editor">
     <div class="card">
       <h3>Editor</h3>
-      <pre>// Hotkeys:
-// Ctrl+Alt+E → Fast Reassure Effect (240ms)
-//              Shrinks from full viewport to zero
+      <pre>// Hotkeys (all with Ctrl+Alt):
+// E → Fast Reassure Effect (240ms)
+//     Shrinks from full viewport to zero
 //
-// Ctrl+Alt+Q → Morph Ripple (800ms)
-//              Telegram-style wave distortion
-//              that ripples through the screen</pre>
+// M → Morph Ripple (800ms)
+//     Telegram-style wave distortion
+//
+// G → Green Laser Pulse - Full Screen
+//     Smooth border pulse around entire viewport
+//
+// T → Green Laser Pulse - Terminal
+//     Smooth border pulse around terminal panel</pre>
     </div>
   </div>
 
@@ -160,22 +212,52 @@
     }, 820);
   }
 
+  function laserPulseFull() {
+    const d = document.createElement('div');
+    d.className = 'pap-laser-pulse full';
+    document.body.appendChild(d);
+    const done = () => d.remove();
+    d.addEventListener('animationend', done, { once: true });
+    setTimeout(done, 700);
+  }
+
+  function laserPulseElement(el) {
+    const rect = el.getBoundingClientRect();
+    const d = document.createElement('div');
+    d.className = 'pap-laser-pulse element';
+    d.style.left = `${rect.left}px`;
+    d.style.top = `${rect.top}px`;
+    d.style.width = `${rect.width}px`;
+    d.style.height = `${rect.height}px`;
+    document.body.appendChild(d);
+    const done = () => d.remove();
+    d.addEventListener('animationend', done, { once: true });
+    setTimeout(done, 700);
+  }
+
   // ---- Target ----
   const $editor = document.getElementById('editor');
+  const $terminal = document.getElementById('terminal');
 
-  // ---- Hotkeys: Ctrl+Alt+E and Ctrl+Alt+M ----
+  // ---- Hotkeys ----
   document.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.altKey) {
       if (e.code === 'KeyE') {
         reassureFull($editor, 240);
       }
-      if (e.code === 'KeyQ') {
+      if (e.code === 'KeyM') {
         morphRipple();
+      }
+      if (e.code === 'KeyG') {
+        laserPulseFull();
+      }
+      if (e.code === 'KeyT') {
+        laserPulseElement($terminal);
       }
     }
   });
 
   // Expose for console testing
-  window.PAP = { reassureFull, morphRipple };
+  window.PAP = { reassureFull, morphRipple, laserPulseFull, laserPulseElement };
 </script>
 </html>

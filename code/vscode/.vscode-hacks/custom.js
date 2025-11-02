@@ -1,4 +1,3 @@
-// ===== Programmers-Are-People demo JS (lens edition) =====
 (function () {
   const qs = (sel) => document.querySelector(sel);
 
@@ -16,6 +15,69 @@
   }
 
   debugLog('custom.js bootstrap');
+  // Ensure required CSS is present for effects
+  function ensureStyles() {
+    if (document.getElementById('pap-style-effects')) return;
+    const style = document.createElement('style');
+    style.id = 'pap-style-effects';
+    style.textContent = `
+/* ========= REASSURE: full-screen -> zero ========= */
+.pap-reassure { position: fixed; inset: 0; pointer-events: none; z-index: 10000; }
+.pap-reassure::before {
+  content: "";
+  position: fixed;
+  left: var(--cx); top: var(--cy);
+  --rBase: 120px;
+  width: calc(var(--rBase) * 2); height: calc(var(--rBase) * 2);
+  transform: translate(-50%, -50%) scale(var(--s0, 1));
+  border-radius: 50%;
+  box-shadow: 0 0 22px 6px rgba(255,255,255,0.14), 0 0 0 2px rgba(255,255,255,0.26) inset;
+  background: radial-gradient(circle, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.0) 60%);
+  animation: pap-reassure-to-zero var(--dur, 240ms) linear forwards;
+}
+.pap-reassure::after {
+  content: "";
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.20);
+  animation: pap-reassure-dim var(--dur, 240ms) linear forwards;
+}
+@keyframes pap-reassure-to-zero {
+  from { opacity: .95; transform: translate(-50%,-50%) scale(var(--s0, 1)); }
+  to   { opacity: 0;   transform: translate(-50%,-50%) scale(0); }
+}
+@keyframes pap-reassure-dim { from { opacity: .18; } to { opacity: 0; } }
+
+/* ========= GREEN LASER PULSE ========= */
+.pap-laser-pulse {
+  position: fixed; pointer-events: none; z-index: 10003; border: 2px solid #00ff88;
+  box-shadow: 0 0 20px 4px rgba(0, 255, 136, 0.8), 0 0 40px 8px rgba(0, 255, 136, 0.6), inset 0 0 20px 4px rgba(0, 255, 136, 0.4);
+  animation: pap-laser-pulse-anim 600ms ease-out forwards;
+}
+.pap-laser-pulse.full { inset: 0; }
+.pap-laser-pulse.element { /* positioned dynamically */ }
+@keyframes pap-laser-pulse-anim {
+  0% { opacity: 0; box-shadow: 0 0 10px 2px rgba(0,255,136,0.9), 0 0 20px 4px rgba(0,255,136,0.7), inset 0 0 10px 2px rgba(0,255,136,0.5); }
+  20% { opacity: 1; box-shadow: 0 0 30px 8px rgba(0,255,136,1), 0 0 60px 16px rgba(0,255,136,0.8), inset 0 0 30px 8px rgba(0,255,136,0.6); }
+  100% { opacity: 0; box-shadow: 0 0 50px 20px rgba(0,255,136,0.2), 0 0 100px 40px rgba(0,255,136,0.1), inset 0 0 50px 20px rgba(0,255,136,0.1); }
+}
+
+/* ========= SWEEP (subtle left-to-right wipe) ========= */
+.pap-sweep {
+  position: fixed; inset: 0; pointer-events: none; z-index: 10002;
+  background: linear-gradient(90deg,
+    rgba(0,0,0,0) 0%,
+    rgba(0,255,160,0.10) 50%,
+    rgba(0,0,0,0) 100%);
+  transform: translateX(-100%);
+  animation: pap-sweep 420ms ease-out forwards;
+}
+@keyframes pap-sweep {
+  to { transform: translateX(100%); opacity: 0; }
+}
+`;
+    document.head.appendChild(style);
+  }
+  ensureStyles();
   const WS_URL = 'ws://127.0.0.1:12718';
   let ws;
   function connect() {
@@ -24,11 +86,47 @@
       ws.onopen = () => { try { debugLog('WS connected'); } catch {} };
       ws.onmessage = (e) => {
         let data; try { data = JSON.parse(e.data); } catch { return; }
-        if (data && data.type === 'reassure') {
+        if (!data || !data.type) return;
+
+        if (data.type === 'reassure') {
           const editor = document.querySelector('.monaco-scrollable-element') || document.body;
           try { window.PAP?.reassureFull?.(editor, 480); } catch {}
-        } else if (data && data.type === 'ripple') {
+          return;
+        }
+
+        if (data.type === 'ripple') {
           try { window.PAP?.morphRipple?.(); } catch {}
+          return;
+        }
+
+        if (data.type === 'laser') {
+          const scope = data.scope || 'full';
+          try {
+            if (scope === 'full') {
+              window.PAP?.laserPulseFull?.();
+            } else if (scope === 'editor') {
+              const el = document.querySelector('.monaco-scrollable-element') || document.body;
+              window.PAP?.laserPulseElement?.(el);
+            } else if (scope === 'terminal') {
+              const el = (typeof terminalEl === 'function' && terminalEl()) || document.body;
+              window.PAP?.laserPulseElement?.(el);
+            } else if (scope === 'sidebar') {
+              window.PAP?.laserPulseSidebar?.();
+            } else if (scope === 'rightBar') {
+              window.PAP?.laserPulseRightBar?.();
+            } else if (scope === 'panelRight') {
+              window.PAP?.laserPulsePanelRight?.();
+            } else {
+              // Fallback
+              window.PAP?.laserPulseFull?.();
+            }
+          } catch {}
+          return;
+        }
+
+        if (data.type === 'sweep') {
+          try { window.PAP?.sweep?.(); } catch {}
+          return;
         }
       };
       ws.onclose = () => setTimeout(connect, 1000);
@@ -39,65 +137,11 @@
   }
   connect();
 
-  // 2) Sweep (kept)
   function sweep() {
     const d = document.createElement('div');
     d.className = 'pap-sweep';
     document.body.appendChild(d);
     d.addEventListener('animationend', () => d.remove(), { once: true });
-  }
-
-  // 3) Lens / Spotlight
-  let lensEl = null;
-
-  function ensureLens() {
-    if (!lensEl) {
-      lensEl = document.createElement('div');
-      lensEl.className = 'pap-lens';
-      document.body.appendChild(lensEl);
-      // keep it aligned when window resizes
-      window.addEventListener('resize', () => {
-        if (currentTarget) moveLensTo(currentTarget, currentRadius);
-      });
-    }
-    return lensEl;
-  }
-
-  // Move the lens to an element (center it; radius fits the element)
-  let currentTarget = null;
-  let currentRadius = 160;
-
-  function moveLensTo(el, radiusPx) {
-    if (!el) return;
-    const lens = ensureLens();
-    const r = el.getBoundingClientRect();
-    const cx = r.left + r.width / 2;
-    const cy = r.top + r.height / 2;
-    const radius = radiusPx ?? Math.max(60, Math.min(260, Math.hypot(r.width, r.height) / 3));
-    lens.style.setProperty('--cx', `${cx}px`);
-    lens.style.setProperty('--cy', `${cy}px`);
-    lens.style.setProperty('--r', `${radius}px`);
-    currentTarget = el;
-    currentRadius = radius;
-  }
-
-  function moveLensToViewportCenter(radiusPx = 180) {
-    const lens = ensureLens();
-    const cx = window.innerWidth / 2;
-    const cy = window.innerHeight / 2;
-    lens.style.setProperty('--cx', `${cx}px`);
-    lens.style.setProperty('--cy', `${cy}px`);
-    lens.style.setProperty('--r', `${radiusPx}px`);
-    currentTarget = null;
-    currentRadius = radiusPx;
-  }
-
-  function removeLens() {
-    if (lensEl) {
-      lensEl.remove();
-      lensEl = null;
-      currentTarget = null;
-    }
   }
 
   // Convenience selectors
@@ -109,44 +153,45 @@
            qs('.part.panel .pane-body') ||
            qs('.part.panel');
   }
+  function sideBarEl() {
+    return qs('.monaco-workbench .part.sidebar') || qs('.part.sidebar');
+  }
+  function auxBarEl() {
+    // VS Code right-hand bar (aka Secondary Side Bar / Auxiliary Bar)
+    return qs('.monaco-workbench .part.auxiliarybar') || qs('.part.auxiliarybar');
+  }
 
-  // 4) Hotkeys
+  function panelRightOfTerminalEl() {
+    const panel = qs('.part.panel');
+    if (!panel) return null;
+    const term = terminalEl();
+    if (!term) return null;
+    const tRect = term.getBoundingClientRect();
+    // Find visible split children inside panel
+    const splits = Array.from(panel.querySelectorAll('.split-view-view'))
+      .filter((el) => el.offsetWidth > 0 && el.offsetHeight > 0);
+    if (!splits.length) return null;
+    // Pick the split whose left edge is to the right of terminal center
+    const candidates = splits
+      .map((el) => ({ el, rect: el.getBoundingClientRect() }))
+      .filter((o) => o.rect.left > tRect.left + tRect.width / 2 - 1);
+    if (candidates.length) {
+      // Choose the rightmost candidate
+      candidates.sort((a, b) => a.rect.left - b.rect.left);
+      return candidates[candidates.length - 1].el;
+    }
+    // Fallback: choose the widest non-terminal split
+    const nonTerminal = splits
+      .map((el) => ({ el, rect: el.getBoundingClientRect() }))
+      .filter((o) => Math.abs(o.rect.left - tRect.left) > 2 || Math.abs(o.rect.width - tRect.width) > 2)
+      .sort((a, b) => b.rect.width - a.rect.width);
+    return nonTerminal[0]?.el || null;
+  }
+
   document.addEventListener('keydown', (e) => {
     // Sweep: Ctrl+Shift+Alt+P
     if (e.ctrlKey && e.shiftKey && e.altKey && e.code === 'KeyP') {
       sweep();
-    }
-    // Lens cycle: Ctrl+Shift+Alt+L
-    if (e.ctrlKey && e.shiftKey && e.altKey && e.code === 'KeyL') {
-      const el = document.activeElement;
-
-      // Cycle: viewport center → status bar → terminal → viewport center
-      const state = (ensureLens().dataset.state || 'center');
-      if (state === 'center') {
-        const sb = statusBarEl();
-        if (sb) { moveLensTo(sb, 140); ensureLens().dataset.state = 'status'; }
-        else { moveLensToViewportCenter(); ensureLens().dataset.state = 'center'; }
-      } else if (state === 'status') {
-        const term = terminalEl();
-        if (term) { moveLensTo(term, 180); ensureLens().dataset.state = 'terminal'; }
-        else { moveLensToViewportCenter(); ensureLens().dataset.state = 'center'; }
-      } else {
-        moveLensToViewportCenter();
-        ensureLens().dataset.state = 'center';
-      }
-    }
-    // Remove lens: Ctrl+Shift+Alt+K
-    if (e.ctrlKey && e.shiftKey && e.altKey && e.code === 'KeyK') {
-      removeLens();
-    }
-    // Resize lens radius with +/- while lens visible
-    if (lensEl && (e.key === '+' || e.key === '=')) {
-      const newR = Math.min(360, currentRadius + 16);
-      (currentTarget ? moveLensTo(currentTarget, newR) : moveLensToViewportCenter(newR));
-    }
-    if (lensEl && (e.key === '-' || e.key === '_')) {
-      const newR = Math.max(60, currentRadius - 16);
-      (currentTarget ? moveLensTo(currentTarget, newR) : moveLensToViewportCenter(newR));
     }
   });
 
@@ -252,6 +297,64 @@
     setTimeout(() => { workbench.style.filter = originalFilter || ''; }, durationMs + 20);
   }
 
+  // ---- Green Laser Pulse (full + element variants) ----
+  function laserPulseFull() {
+    const d = document.createElement('div');
+    d.className = 'pap-laser-pulse full';
+    document.body.appendChild(d);
+    const done = () => d.remove();
+    d.addEventListener('animationend', done, { once: true });
+    setTimeout(done, 700);
+  }
+
+  function laserPulseElement(el) {
+    const target = el || terminalEl() || statusBarEl() || document.body;
+    const rect = target.getBoundingClientRect();
+    const d = document.createElement('div');
+    d.className = 'pap-laser-pulse element';
+    d.style.left = `${rect.left}px`;
+    d.style.top = `${rect.top}px`;
+    d.style.width = `${rect.width}px`;
+    d.style.height = `${rect.height}px`;
+    document.body.appendChild(d);
+    const done = () => d.remove();
+    d.addEventListener('animationend', done, { once: true });
+    setTimeout(done, 700);
+  }
+
+  function laserPulseSidebar() {
+    const s = sideBarEl();
+    if (s) {
+      laserPulseElement(s);
+    } else {
+      laserPulseFull();
+    }
+  }
+
+  function laserPulseRightBar() {
+    const r = auxBarEl();
+    if (r) {
+      laserPulseElement(r);
+    } else {
+      laserPulseFull();
+    }
+  }
+
+  function laserPulsePanelRight() {
+    const p = panelRightOfTerminalEl();
+    if (p) {
+      laserPulseElement(p);
+    } else {
+      // Fall back to panel itself
+      const panel = qs('.part.panel');
+      if (panel) {
+        laserPulseElement(panel);
+      } else {
+        laserPulseFull();
+      }
+    }
+  }
+
   // ---- Hotkeys for new effects ----
   document.addEventListener('keydown', (e) => {
     // Fast Reassure: Ctrl+Alt+E
@@ -262,15 +365,37 @@
     if (e.ctrlKey && e.altKey && !e.shiftKey && e.code === 'KeyQ') {
       morphRipple();
     }
+    // Laser Pulse (Full Screen): Ctrl+Alt+G
+    if (e.ctrlKey && e.altKey && !e.shiftKey && e.code === 'KeyG') {
+      laserPulseFull();
+    }
+    // Laser Pulse (Terminal Element): Ctrl+Alt+T
+    if (e.ctrlKey && e.altKey && !e.shiftKey && e.code === 'KeyT') {
+      const t = terminalEl();
+      if (t) laserPulseElement(t);
+    }
+    // Laser Pulse (Sidebar/Task area): Ctrl+Alt+S
+    if (e.ctrlKey && e.altKey && !e.shiftKey && e.code === 'KeyS') {
+      laserPulseSidebar();
+    }
+    // Laser Pulse (Right of Terminal in Panel): Ctrl+Alt+R
+    if (e.ctrlKey && e.altKey && !e.shiftKey && e.code === 'KeyR') {
+      laserPulsePanelRight();
+    }
+    // Laser Pulse (Auxiliary Bar / secondary sidebar): Ctrl+Alt+A
+    if (e.ctrlKey && e.altKey && !e.shiftKey && e.code === 'KeyA') {
+      laserPulseRightBar();
+    }
   });
 
   window.PAP = Object.assign(window.PAP || {}, {
     sweep,
-    lensCenter: (r) => moveLensToViewportCenter(r),
-    lensToStatus: (r) => moveLensTo(statusBarEl(), r),
-    lensToTerminal: (r) => moveLensTo(terminalEl(), r),
-    lensOff: removeLens,
     reassureFull,
-    morphRipple
+    morphRipple,
+    laserPulseFull,
+    laserPulseElement,
+    laserPulseSidebar,
+    laserPulseRightBar,
+    laserPulsePanelRight
   });
 })();
