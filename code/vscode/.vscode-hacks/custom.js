@@ -74,6 +74,24 @@
 @keyframes pap-sweep {
   to { transform: translateX(100%); opacity: 0; }
 }
+
+/* ========= SPARKLE (random stars) ========= */
+.pap-star {
+  position: fixed;
+  width: var(--size);
+  height: var(--size);
+  background: #ffeb3b;
+  clip-path: polygon(50% 0%, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0% 50%, 40% 40%);
+  box-shadow: 0 0 8px #ffeb3b;
+  pointer-events: none;
+  z-index: 10005;
+  animation: pap-sparkle 1.2s ease-out forwards;
+}
+@keyframes pap-sparkle {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.8); opacity: 0; }
+}
 `;
     document.head.appendChild(style);
   }
@@ -128,6 +146,18 @@
           try { window.PAP?.sweep?.(); } catch {}
           return;
         }
+
+        if (data.type === 'sparkle') {
+          try {
+            const mode = data.mode || 'burst';
+            if (mode === 'rain') {
+              window.PAP?.sparkleRain?.(data.durationMs || 5000, data.intervalMs || 500, data.count || 30);
+            } else {
+              window.PAP?.sparkleBurst?.(data.count || 30, data.ttlMs || 1200);
+            }
+          } catch {}
+          return;
+        }
       };
       ws.onclose = () => setTimeout(connect, 1000);
       ws.onerror = () => { try { ws.close(); } catch {} };
@@ -142,6 +172,26 @@
     d.className = 'pap-sweep';
     document.body.appendChild(d);
     d.addEventListener('animationend', () => d.remove(), { once: true });
+  }
+
+  // Sparkle helpers
+  function sparkleBurst(count = 30, ttlMs = 1200) {
+    for (let i = 0; i < count; i++) {
+      const star = document.createElement('div');
+      star.className = 'pap-star';
+      const sizePx = Math.floor(Math.random() * 20) + 12; // 12px..32px
+      star.style.setProperty('--size', `${sizePx}px`);
+      star.style.left = Math.random() * window.innerWidth + 'px';
+      star.style.top = Math.random() * window.innerHeight + 'px';
+      document.body.appendChild(star);
+      setTimeout(() => star.remove(), ttlMs);
+    }
+  }
+
+  function sparkleRain(durationMs = 5000, intervalMs = 500, count = 30) {
+    const id = setInterval(() => sparkleBurst(count), intervalMs);
+    setTimeout(() => clearInterval(id), durationMs);
+    return id;
   }
 
   // Convenience selectors
@@ -386,6 +436,14 @@
     if (e.ctrlKey && e.altKey && !e.shiftKey && e.code === 'KeyA') {
       laserPulseRightBar();
     }
+    // Sparkle Burst (random stars): Ctrl+Alt+B
+    if (e.ctrlKey && e.altKey && !e.shiftKey && e.code === 'KeyB') {
+      sparkleBurst();
+    }
+    // Sparkle Rain (repeating bursts): Ctrl+Alt+Y
+    if (e.ctrlKey && e.altKey && !e.shiftKey && e.code === 'KeyY') {
+      sparkleRain();
+    }
   });
 
   window.PAP = Object.assign(window.PAP || {}, {
@@ -396,6 +454,8 @@
     laserPulseElement,
     laserPulseSidebar,
     laserPulseRightBar,
-    laserPulsePanelRight
+    laserPulsePanelRight,
+    sparkleBurst,
+    sparkleRain
   });
 })();
