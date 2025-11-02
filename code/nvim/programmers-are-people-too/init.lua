@@ -5,11 +5,11 @@ local M = {}
 
 -- Load all plugin modules
 local collector = require("plugins.programmers-are-people-too.collector")
-local formatter = require("plugins.programmers-are-people-too.formatter")
-local file_writer = require("plugins.programmers-are-people-too.file_writer")
 local cache_manager = require("plugins.programmers-are-people-too.cache")
 local solved_display = require("plugins.programmers-are-people-too.solved_display")
 local config_module = require("plugins.programmers-are-people-too.config")
+local notify = require("plugins.programmers-are-people-too.notify")
+local counter = require("plugins.programmers-are-people-too.counter")
 
 -- Namespace for solved errors
 local solved_namespace = vim.api.nvim_create_namespace("programmers-are-people-too-solved")
@@ -31,14 +31,10 @@ function M.setup(opts)
     return  -- Early exit if disabled
   end
   
-  local default_filepath = opts.filepath or vim.fn.stdpath("cache") .. "/lsp_diagnostics.log"
   local cache_dir = opts.cache_dir or (vim.fn.stdpath("cache") .. "/programmers-are-people-too/diagnostics_cache")
   
-  -- Store configuration (legacy compatibility)
-  config.filepath = default_filepath
+  -- Store configuration
   config.cache_dir = cache_dir
-  config.keymap = opts.keymap
-  config.auto_log = opts.auto_log ~= false
   config.auto_save_cache = opts.auto_save_cache ~= false
 
   -- Initialize cache manager
@@ -58,27 +54,132 @@ function M.setup(opts)
     auto_save_cache = config.auto_save_cache,
   })
 
-  file_writer.setup({
-    collector = collector,
-    formatter = formatter,
-  })
-
-  -- Create command to write diagnostics
-  vim.api.nvim_create_user_command("ProgrammersErrorLog", function(args)
-    local filepath = args.args ~= "" and args.args or config.filepath
-    file_writer.write_full_report(filepath)
-  end, {
-    desc = "Write all LSP diagnostics to a file",
-    nargs = "?",
-    complete = "file",
-  })
-
-  -- Optionally add keybinding
-  if config.keymap then
-    vim.keymap.set("n", config.keymap, function()
-      file_writer.write_full_report(config.filepath)
-    end, { desc = "Log LSP errors to file" })
+  -- Create :cheermeup command to show fixed errors/hints summary
+  local function cheer_me_up()
+    local counts = counter.get_counts()
+    local n = counts.errors
+    local s = counts.hints
+    local f = counts.files
+    local total_fixes = n + s
+    
+    -- Calculate combo score (point system)
+    -- Base points: errors=2, hints=1, files=3
+    local score = (n * 2) + (s * 1) + (f * 3)
+    
+    -- Determine tier based on combo score and distribution
+    local tier = "bronze"
+    local message = ""
+    local title = ""
+    
+    -- Special case: nothing fixed yet
+    if total_fixes == 0 and f == 0 then
+      title = "💪 Keep It Up!"
+      message = "Keep going! You're doing great!"
+    elseif total_fixes == 0 and f > 0 then
+      title = "📝 Getting Started"
+      message = string.format("Working on %d file%s! Start fixing those issues!", f, f == 1 and "" or "s")
+    else
+      -- Build the basic stats message
+      local stats_parts = {}
+      
+      -- Errors
+      if n > 0 then
+        if n == 1 then
+          stats_parts[#stats_parts + 1] = "1 error"
+        else
+          stats_parts[#stats_parts + 1] = string.format("%d errors", n)
+        end
+      end
+      
+      -- Hints
+      if s > 0 then
+        if n > 0 then
+          if s == 1 then
+            stats_parts[#stats_parts + 1] = "1 hint"
+          else
+            stats_parts[#stats_parts + 1] = string.format("%d hints", s)
+          end
+        else
+          if s == 1 then
+            stats_parts[#stats_parts + 1] = "1 hint"
+          else
+            stats_parts[#stats_parts + 1] = string.format("%d hints", s)
+          end
+        end
+      end
+      
+      local stats_msg = ""
+      if #stats_parts == 1 then
+        stats_msg = "Fixed " .. stats_parts[1]
+      elseif #stats_parts == 2 then
+        stats_msg = "Fixed " .. stats_parts[1] .. " and " .. stats_parts[2]
+      end
+      
+      -- Determine tier and message based on combo score
+      if score <= 5 then
+        -- Tier 1: Bronze (just starting)
+        tier = "bronze"
+        title = "🥉 Nice Start!"
+        if f == 1 then
+          message = string.format("%s in 1 file. Good job!", stats_msg)
+        else
+          message = string.format("%s across %d files. Nice work!", stats_msg, f)
+        end
+      elseif score <= 15 then
+        -- Tier 2: Silver (making progress)
+        tier = "silver"
+        title = "🥈 Great Progress!"
+        if f == 1 then
+          message = string.format("%s in 1 file. Great job!", stats_msg)
+        elseif f <= 3 then
+          message = string.format("%s across %d files. Excellent work!", stats_msg, f)
+        else
+          message = string.format("%s across %d files. Keep it up!", stats_msg, f)
+        end
+      elseif score <= 40 then
+        -- Tier 3: Gold (productive session)
+        tier = "gold"
+        title = "🥇 Productive Session!"
+        if f == 1 then
+          message = string.format("%s in 1 file. Awesome debugging!", stats_msg)
+        elseif f <= 5 then
+          message = string.format("%s across %d files. Outstanding work!", stats_msg, f)
+        else
+          message = string.format("%s across %d files. Impressive range!", stats_msg, f)
+        end
+      elseif score <= 100 then
+        -- Tier 4: Platinum (exceptional)
+        tier = "platinum"
+        title = "💎 Exceptional Work!"
+        if f <= 5 then
+          message = string.format("%s across %d files. You're a debugging master!", stats_msg, f)
+        elseif f <= 10 then
+          message = string.format("%s across %d files. Incredible productivity!", stats_msg, f)
+        else
+          message = string.format("%s across %d files. Phenomenal scope!", stats_msg, f)
+        end
+      else
+        -- Tier 5: Legendary (absolute legend)
+        tier = "legendary"
+        title = "👑 Absolute Legend!"
+        if f <= 10 then
+          message = string.format("%s across %d files. You're unstoppable!", stats_msg, f)
+        else
+          message = string.format("%s across %d files. Legendary achievement! 🚀", stats_msg, f)
+        end
+      end
+    end
+    
+    -- Show notification
+    notify.show_notification(message, vim.log.levels.SUCCESS, {
+      title = title,
+      timeout = 5000,
+    })
   end
+  
+  vim.api.nvim_create_user_command("CheerMeUp", cheer_me_up, {
+    desc = "Show a celebration of fixed errors and hints",
+  })
 
   -- Flag to prevent recursion
   local updating_solved = false
@@ -90,36 +191,6 @@ function M.setup(opts)
     end
     local ok, is_loaded = pcall(vim.api.nvim_buf_is_loaded, buf)
     return ok and is_loaded
-  end
-
-  -- Helper function to show beautiful notifications using nvim-notify
-  local function notify_fixed(message, level, opts)
-    level = level or vim.log.levels.INFO
-    opts = opts or {}
-    
-    -- Try to use nvim-notify (best option for nice notifications)
-    local ok, notify = pcall(require, "notify")
-    
-    if ok then
-      -- nvim-notify with beautiful styling
-      local notify_opts = vim.tbl_extend("keep", {
-        title = opts.title or "✓ Errors Fixed",
-        timeout = 3000,
-        render = "default",
-        position = "bottom_right",
-        stages = "fade_in_slide_out",
-        max_height = function() return math.floor(vim.o.lines * 0.25) end,
-        max_width = function() return math.floor(vim.o.columns * 0.25) end,
-        on_open = function(win)
-          vim.api.nvim_win_set_config(win, { zindex = 1000 })
-        end,
-      }, opts)
-      
-      notify(message, level, notify_opts)
-    else
-      -- Fallback to vim.notify if nvim-notify not installed
-      vim.notify(message, level, opts)
-    end
   end
 
   -- Function to update solved errors display
@@ -224,6 +295,11 @@ function M.setup(opts)
       vim.schedule(function()
         local bufname = vim.api.nvim_buf_get_name(bufnr)
         if bufname and bufname ~= "" then
+          -- Show file saved notification if enabled
+          if plugin_config.notify_on_save then
+            notify.notify_saved(bufname)
+          end
+          
           -- Collect all diagnostics for this buffer
           local current_diags = vim.diagnostic.get(bufnr)
           
@@ -240,57 +316,59 @@ function M.setup(opts)
             end
           end
           
-          -- Count newly fixed errors for notification
+          -- Count newly fixed errors for notification and increment counter
           local notification_style = plugin_config.solved_notification or "inline"
           local newly_fixed_count = 0
-          if notification_style == "notification" or notification_style == "both" then
-            if cache_data and cache_data.errors then
-              local seen_locations = {}  -- Deduplicate by location like solved_display does
-              
-              for error_id, error_data in pairs(cache_data.errors) do
-                -- Only count "fixed" status (not "displayed"), since "fixed" = newly fixed
-                if error_data.status == "fixed" then
-                  local location_key = string.format("%d:%d", error_data.lnum, error_data.col)
-                  if not seen_locations[location_key] then
-                    seen_locations[location_key] = true
-                    -- Check if line still exists and doesn't have active errors
-                    local current_diags = vim.diagnostic.get(bufnr)
-                    local lines_with_errors = {}
-                    for _, diag in ipairs(current_diags) do
-                      lines_with_errors[diag.lnum] = true
-                    end
-                    
-                    local ok_count, max_line_count = pcall(vim.api.nvim_buf_line_count, bufnr)
-                    if ok_count and error_data.lnum <= (max_line_count - 1) then
-                      if not lines_with_errors[error_data.lnum] then
-                        newly_fixed_count = newly_fixed_count + 1
-                      end
+          if cache_data and cache_data.errors then
+            local seen_locations = {}  -- Deduplicate by location like solved_display does
+            
+            for error_id, error_data in pairs(cache_data.errors) do
+              -- Only count "fixed" status (not "displayed"), since "fixed" = newly fixed
+              if error_data.status == "fixed" then
+                local location_key = string.format("%d:%d", error_data.lnum, error_data.col)
+                if not seen_locations[location_key] then
+                  seen_locations[location_key] = true
+                  -- Check if line still exists and doesn't have active errors
+                  local current_diags = vim.diagnostic.get(bufnr)
+                  local lines_with_errors = {}
+                  for _, diag in ipairs(current_diags) do
+                    lines_with_errors[diag.lnum] = true
+                  end
+                  
+                  local ok_count, max_line_count = pcall(vim.api.nvim_buf_line_count, bufnr)
+                  if ok_count and error_data.lnum <= (max_line_count - 1) then
+                    if not lines_with_errors[error_data.lnum] then
+                      newly_fixed_count = newly_fixed_count + 1
+                      -- Increment the internal counter based on severity
+                      counter.increment_fixed(error_data.severity, bufname)
                     end
                   end
                 end
               end
-              
-              -- Fallback: reload from disk if cache_data not available
-              if newly_fixed_count == 0 and cache_manager then
-                local absolute_path = vim.fn.fnamemodify(bufname, ":p")
-                local fallback_cache = cache_manager.load_file_cache(absolute_path)
-                if fallback_cache and fallback_cache.errors then
-                  local seen_locations = {}
-                  for error_id, error_data in pairs(fallback_cache.errors) do
-                    if error_data.status == "fixed" then
-                      local location_key = string.format("%d:%d", error_data.lnum, error_data.col)
-                      if not seen_locations[location_key] then
-                        seen_locations[location_key] = true
-                        local current_diags = vim.diagnostic.get(bufnr)
-                        local lines_with_errors = {}
-                        for _, diag in ipairs(current_diags) do
-                          lines_with_errors[diag.lnum] = true
-                        end
-                        local ok_count, max_line_count = pcall(vim.api.nvim_buf_line_count, bufnr)
-                        if ok_count and error_data.lnum <= (max_line_count - 1) then
-                          if not lines_with_errors[error_data.lnum] then
-                            newly_fixed_count = newly_fixed_count + 1
-                          end
+            end
+            
+            -- Fallback: reload from disk if cache_data not available
+            if newly_fixed_count == 0 and cache_manager then
+              local absolute_path = vim.fn.fnamemodify(bufname, ":p")
+              local fallback_cache = cache_manager.load_file_cache(absolute_path)
+              if fallback_cache and fallback_cache.errors then
+                local seen_locations = {}
+                for error_id, error_data in pairs(fallback_cache.errors) do
+                  if error_data.status == "fixed" then
+                    local location_key = string.format("%d:%d", error_data.lnum, error_data.col)
+                    if not seen_locations[location_key] then
+                      seen_locations[location_key] = true
+                      local current_diags = vim.diagnostic.get(bufnr)
+                      local lines_with_errors = {}
+                      for _, diag in ipairs(current_diags) do
+                        lines_with_errors[diag.lnum] = true
+                      end
+                      local ok_count, max_line_count = pcall(vim.api.nvim_buf_line_count, bufnr)
+                      if ok_count and error_data.lnum <= (max_line_count - 1) then
+                        if not lines_with_errors[error_data.lnum] then
+                          newly_fixed_count = newly_fixed_count + 1
+                          -- Increment the internal counter based on severity
+                          counter.increment_fixed(error_data.severity, bufname)
                         end
                       end
                     end
@@ -300,7 +378,7 @@ function M.setup(opts)
             end
           end
           
-          -- Show notification if enabled
+          -- Show notification if enabled (only for notification styles)
           if newly_fixed_count > 0 and (notification_style == "notification" or notification_style == "both") then
             local message
             if newly_fixed_count == 1 then
@@ -311,19 +389,10 @@ function M.setup(opts)
             -- Schedule notification separately to ensure it shows nicely
             vim.schedule(function()
               -- Use SUCCESS level for positive feedback and nice green color
-              notify_fixed(message, vim.log.levels.SUCCESS, {
+              notify.notify_fixed(message, vim.log.levels.SUCCESS, {
                 title = newly_fixed_count == 1 and "✓ Error Fixed" or "✓ Errors Fixed",
               })
             end)
-          end
-          
-          -- Auto-log errors if enabled (logs current errors to file)
-          if config.auto_log then
-            -- Log errors from this buffer
-            local errors = vim.diagnostic.get(bufnr, { severity = vim.diagnostic.severity.ERROR })
-            for _, diag in ipairs(errors) do
-              file_writer.append_error(config.filepath, bufname, diag)
-            end
           end
           
           -- Display solved errors inline if enabled
