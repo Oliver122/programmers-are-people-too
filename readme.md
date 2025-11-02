@@ -31,9 +31,10 @@ Programming becomes rocking the crowds ツ
 
 ### Core Principles
 1. **Celebrate achievements**, don't just highlight problems
-2. **Feedback** delightful, not intrusive. Visuell,  
-3. **Multi editor and language support** - positive vibes for everyone
-4. **Real-time** - celebrate the moment it happens
+2. **Feedback** delightful, not intrusive.  
+3. **Real-time** - celebrate the moment it happens
+4. **Multi editor and language support** - positive vibes for everyone
+
 
 ### Architectural Overview
 <!--TODO:check and confirm-->
