@@ -98,6 +98,17 @@
           "default": true,
           "description": "Animations in the line of code"
         },
+        "ProgrammersArePeopleToo.onSaveEffect": {
+          "type": "string",
+          "default": "reassure",
+          "enum": ["reassure", "laser-full", "laser-editor"],
+          "enumDescriptions": [
+            "Classic reassure circle (shrinks to center)",
+            "Green laser pulse around full window",
+            "Green laser pulse around editor only"
+          ],
+          "description": "Which visual effect to trigger when saving a file."
+        },
         "ProgrammersArePeopleToo.cheerMeUpDurationMinutes": {
           "type": "number",
           "default": 60,
@@ -128,6 +139,7 @@
     "@typescript-eslint/parser": "^8.45.0",
     "@vscode/test-cli": "^0.0.11",
     "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.6.2",
     "eslint": "^9.36.0",
     "typescript": "^5.9.3"
   }

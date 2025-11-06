@@ -12,7 +12,7 @@ target_include_directories(
 file(
   GLOB_RECURSE
   foobar_backend_files
-  "*.cpp"
+  "*.cpp
 )
 
 target_sources(

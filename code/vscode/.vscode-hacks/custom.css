@@ -1,6 +1,6 @@
 /* ===== Programmers-Are-People demo CSS (lens edition) ===== */
 
-/* Gentle pulse on the status bar (kept) */
+/* Gentle pulse on the status bar (kept) */ 
 .monaco-workbench .part.statusbar { position: relative; }
 .pap-status-pulse { animation: pap-pulse 2.2s ease-in-out infinite; }
 @keyframes pap-pulse {

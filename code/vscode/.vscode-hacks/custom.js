@@ -123,8 +123,7 @@
             if (scope === 'full') {
               window.PAP?.laserPulseFull?.();
             } else if (scope === 'editor') {
-              const el = document.querySelector('.monaco-scrollable-element') || document.body;
-              window.PAP?.laserPulseElement?.(el);
+              window.PAP?.laserPulseEditor?.();
             } else if (scope === 'terminal') {
               const el = (typeof terminalEl === 'function' && terminalEl()) || document.body;
               window.PAP?.laserPulseElement?.(el);
@@ -210,6 +209,19 @@
     // VS Code right-hand bar (aka Secondary Side Bar / Auxiliary Bar)
     return qs('.monaco-workbench .part.auxiliarybar') || qs('.part.auxiliarybar');
   }
+  
+    function editorEl() {
+        // Target just the editor content area, excluding tabs
+        const editorContent = qs('.part.editor .editor-group-container .monaco-editor');
+        if (editorContent) return editorContent;
+        
+        // Alternative: the split view container that holds editor groups
+        const splitView = qs('.part.editor .split-view-container');
+        if (splitView) return splitView;
+        
+        // Fallback: editor group container (still excludes tabs)
+        return qs('.part.editor .editor-group-container') || null;
+    }
 
   function panelRightOfTerminalEl() {
     const panel = qs('.part.panel');
@@ -405,6 +417,16 @@
     }
   }
 
+  function laserPulseEditor() {
+    const e = editorEl();
+    if (e) {
+      laserPulseElement(e);
+    } else {
+      // If we cannot locate the editor, avoid highlighting the whole window unintentionally
+      laserPulseFull();
+    }
+  }
+
   // ---- Hotkeys for new effects ----
   document.addEventListener('keydown', (e) => {
     // Fast Reassure: Ctrl+Alt+E
@@ -423,6 +445,10 @@
     if (e.ctrlKey && e.altKey && !e.shiftKey && e.code === 'KeyT') {
       const t = terminalEl();
       if (t) laserPulseElement(t);
+    }
+    // Laser Pulse (Editor Element): Ctrl+Alt+I
+    if (e.ctrlKey && e.altKey && !e.shiftKey && e.code === 'KeyI') {
+      laserPulseEditor();
     }
     // Laser Pulse (Sidebar/Task area): Ctrl+Alt+S
     if (e.ctrlKey && e.altKey && !e.shiftKey && e.code === 'KeyS') {
@@ -452,6 +478,7 @@
     morphRipple,
     laserPulseFull,
     laserPulseElement,
+    laserPulseEditor,
     laserPulseSidebar,
     laserPulseRightBar,
     laserPulsePanelRight,

@@ -267,8 +267,20 @@ function setupSaveMonitoring(context: vscode.ExtensionContext) {
         
         // Track file change
         statsTracker.trackFileChanged(document.uri);
-        // Tell UI to reassure
-        broadcast({ type: 'reassure', target: 'editor' });
+        // Choose visual effect based on configuration
+        const config = vscode.workspace.getConfiguration('ProgrammersArePeopleToo');
+        const effect = config.get<string>('onSaveEffect', 'reassure');
+
+        if (effect === 'reassure') {
+            broadcast({ type: 'reassure' });
+        } else if (effect === 'laser-full') {
+            broadcast({ type: 'laser', scope: 'full' });
+        } else if (effect === 'laser-editor') {
+            broadcast({ type: 'laser', scope: 'editor' });
+        } else {
+            // Fallback to reassure if unknown value
+            broadcast({ type: 'reassure' });
+        }
     });
     context.subscriptions.push(subscription);
 }
